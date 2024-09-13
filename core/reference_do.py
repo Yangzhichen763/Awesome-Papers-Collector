@@ -4,7 +4,7 @@ from time import sleep
 import requests
 import re
 
-from console import colored_print
+from core.console import colored_print
 
 
 search_engine = "cn.bing.com"
