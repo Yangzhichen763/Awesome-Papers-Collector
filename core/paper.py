@@ -2,6 +2,8 @@ import os
 
 
 class Overview:
+    date_sep = "."  # 日期分隔符，比如 20xx.01.xx
+
     def __init__(
         self, *,
         url,
@@ -18,11 +20,12 @@ class Overview:
         self.first_date = first_date
         self.abstract = abstract
 
-
-    def make_authors_md(self):
+    @staticmethod
+    def make_authors_md(authors):
+        # md 格式化作者
         authors_md = [
             f"[**{author}**]()"
-            for author in self.authors
+            for author in authors
         ]
         # 每行最多三个作者
         authors_md_pairs = []
@@ -30,6 +33,17 @@ class Overview:
             if i % 3 == 2 or i == len(authors_md) - 1:
                 authors_md_pairs.append(" · ".join(authors_md[i//3*3:i+1]))
         return "<br>\n".join(authors_md_pairs)
+
+    @staticmethod
+    def make_date_md(date):
+        def parse_month(_month):
+            months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            return f"{months.index(_month) + 1}".rjust(2, "0")
+
+        # 将 xx Jan 20xx 格式化为 20xx-01-xx
+        day, month, year = date.split(" ")
+        month = parse_month(month)
+        return f"{year}{Overview.date_sep}{month}{Overview.date_sep}{day}"
 
     def make(self):
         # 创建文件夹
@@ -40,9 +54,9 @@ class Overview:
         content = rf"""
 <div align="center">
 <h1>{self.title}</h1>
+{self.make_date_md(self.first_date)}
 
-{self.first_date}\
-{self.make_authors_md()}
+{self.make_authors_md(self.authors)}
 
 <a href="{self.url}"><img src='https://img.shields.io/badge/arXiv-Paper-red' alt='Paper'></a>
 </div>
