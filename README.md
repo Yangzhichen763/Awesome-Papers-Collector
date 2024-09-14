@@ -1,8 +1,12 @@
-# Reference Easy Editor
+<div align="center">
+<h1>Reference Easy Editor</h1>
 
-仅实现了简单的功能，其中包括
-1. 爬取文章作者：输入文章名，即可爬取文章作者，可选缩写作者名
-2. 敬请期待
+<a href="https://github.com/Yangzhichen763/referenceEditor"><img src='https://img.shields.io/badge/code-Reference Editor-green' alt='Project Page'></a>
+</div>
+
+这个项目目前仅实现了简单的功能，其中包括
+- 爬取文章作者：通过单篇或多篇文章名，爬取文章作者（可选缩写作者名）
+- 敬请期待
 
 
 # Usage
