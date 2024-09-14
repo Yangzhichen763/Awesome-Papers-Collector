@@ -8,6 +8,7 @@
 # Usage
 ## 爬取文章作者
 使用方法非常简单，如下：
+### 爬取单篇文章的作者
 ``` python
 from core import reference_do
 
@@ -17,6 +18,17 @@ title = "Attention is all you need"
 # 检索文章作者
 reference_do.search_authors_by_title(title)
 ```
+### 爬取多篇文章的作者
+``` python
+from core import reference_do
+
+# 文章标题列表，或者能在搜索引擎中搜索到的关键词列表
+titles = ["Attention is all you need", "Latent Diffusion Model"]
+
+# 检索文章作者
+reference_do.search_authors_by_titles(titles)
+```
+
 ---
 
 # 敬请期待
