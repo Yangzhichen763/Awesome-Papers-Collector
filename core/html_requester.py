@@ -10,19 +10,25 @@ request_headers = {
 }
 
 
-def get_page_content(url: str, headers: dict = None):
+def get_page_content(url: str, headers: dict = None, max_retry_times: int = 3):
     """
     获取网页的 html 内容
     """
     if headers is None:
         headers = request_headers
 
-    while True:
+    retry_times = 0
+    while retry_times <= max_retry_times:
         try:
             response = requests.get(url=url, headers=headers)   # 通过 url 获取网页相应
             response.raise_for_status()                         # 检查相应状态码
             content = response.text                             # 获取网页内容
+            if retry_times > 0:
+                print(f"\r获取网页 {url} 内容成功！")
             return content
         except requests.exceptions.RequestException as e:
-            print(f"获取网页内容失败：{e}，\n重试中...")
+            print(f"\r({retry_times}) 获取网页内容失败：{e}，重试中...", end="")
             sleep(0.5)                                          # 重试间隔
+            retry_times += 1
+
+    return None
