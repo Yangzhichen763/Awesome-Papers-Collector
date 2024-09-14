@@ -51,12 +51,15 @@ def parse_arxiv_html(url: str):
     print("\r正在寻找 arXiv 的 HTML 版内容...", end="")
     html_url = url.replace("abs", "html")   # 将 arXiv 的摘要链接转换为 HTML 链接
     html_content = get_page_content(html_url)
-    print("\r将 HTML 内容转换为 BeautifulSoup 对象...", end="")
-    html_soup = BeautifulSoup(html_content, "html.parser")
+    if html_content is not None:
+        print("\r将 HTML 内容转换为 BeautifulSoup 对象...", end="")
+        html_soup = BeautifulSoup(html_content, "html.parser")
 
-    # 项目链接（源代码）
-    print("\r正在寻找项目链接...", end="")
-    project_url = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")["href"]
+        # 项目链接（源代码）
+        print("\r正在寻找项目链接...", end="")
+        project_url = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")["href"]
+    else:
+        project_url = None
 
     print("\r完成 arXiv 网页内容的提取！")
     return Overview(
