@@ -46,6 +46,12 @@ def parse_arxiv_html(url: str):
     # 摘要
     abstract_with_tag = soup.find("blockquote", class_="abstract mathjax").text.strip()
     abstract = remove_tags(abstract_with_tag)
+    # 项目链接（源代码）
+    project_url_html = soup.find("a", class_="link-external link-https")
+    if project_url_html is not None:
+        project_url = project_url_html["href"]
+    else:
+        project_url = None
 
     # == html 内容 ==
     print("\r正在寻找 arXiv 的 HTML 版内容...", end="")
@@ -56,10 +62,9 @@ def parse_arxiv_html(url: str):
         html_soup = BeautifulSoup(html_content, "html.parser")
 
         # 项目链接（源代码）
-        print("\r正在寻找项目链接...", end="")
-        project_url = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")["href"]
-    else:
-        project_url = None
+        if project_url is None:
+            print("\r正在寻找项目链接...", end="")
+            project_url = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")["href"]
 
     print("\r完成 arXiv 网页内容的提取！")
     return Overview(
