@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 
 class Overview:
@@ -6,14 +7,15 @@ class Overview:
 
     def __init__(
         self, *,
-        url,
+        arxiv_url: str, project_url: Optional[str] = None,
         title,
         subjects,
         authors,
         first_date,
         abstract
     ):
-        self.url = url
+        self.arxiv_url = arxiv_url
+        self.project_url = project_url
         self.title = title
         self.subjects = subjects
         self.authors = authors
@@ -50,6 +52,9 @@ class Overview:
         filename = f"../papers/{self.title}.md"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
+        project_md = (f"<a href=\"{self.project_url}\">"
+                      f"<img src='https://img.shields.io/badge/code-Project Page-darkgreen' alt='Project Page'>"
+                      f"</a>")
         # 编辑内容
         content = rf"""
 <div align="center">
@@ -58,7 +63,8 @@ class Overview:
 
 {self.make_authors_md(self.authors)}
 
-<a href="{self.url}"><img src='https://img.shields.io/badge/arXiv-Paper-red' alt='Paper'></a>
+<a href="{self.arxiv_url}"><img src='https://img.shields.io/badge/arXiv-Paper-red' alt='Paper'></a>
+{project_md}
 </div>
 
 {self.abstract}
@@ -68,11 +74,13 @@ class Overview:
         with open(filename, "wb") as file:
             file.write(content.encode())
 
+        print(f"完成文档 {filename} 的创建")
+
 
 if __name__ == "__main__":
     _abstract = " ".join(["It is very long and it is going to be very long." for i in range(10)])
     paper = Overview(
-        url="https://arxiv.org/abs/2103.12345",
+        arxiv_url="https://arxiv.org/abs/2103.12345",
         title="Title of the Paper",
         subjects=["Subject1", "Subject2"],
         authors=["Author1", "Author2", "Author3"],

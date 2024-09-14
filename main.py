@@ -1,12 +1,15 @@
 from core.arxiv_crawler import parse_arxiv_html
-from core.html_requester import get_page_content
+from core.reference_do import search_urls_by_title
 
 
 if __name__ == '__main__':
-    # 要生成的文章 arXiv 链接
-    url = "https://arxiv.org/abs/1706.03762"
+    # 文章关键词
+    query = 'Attention is all you need'
+
+    # 爬取文章链接
+    urls = search_urls_by_title(query, "arXiv")
 
     # 爬取文章摘要并生成 md 文档
-    html_content = get_page_content(url)
-    overview = parse_arxiv_html(html_content, url)
-    overview.make()
+    for url in urls["arXiv"]:
+        overview = parse_arxiv_html(url)
+        overview.make()
