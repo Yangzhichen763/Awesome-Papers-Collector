@@ -136,6 +136,14 @@ def search_authors(
     return False
 
 
+urls_regex = {
+    'arXiv': r"\"(https://arxiv\.org/abs/\d+?\.\d+?)\"",
+    'IEEE': r"\"(https://ieeexplore\.ieee\.org/document/\d*)\"",
+    'ACM': r"\"(https://dl\.acm\.org/doi/\d+\.\d+/\d+\.\d+)\"",  # .../doi/abs/...也可以
+    'Semantics Scholar': r"\"(https://www\.semanticscholar\.org/paper/.+?)\"",
+}
+
+
 def arxiv_search(search_engine_url: str, query: str, **kwargs):
     def html_solver(html_content):
         # 提取页面中文章的标题
@@ -150,8 +158,8 @@ def arxiv_search(search_engine_url: str, query: str, **kwargs):
 
     urls = search_url(
         search_engine_url, query,
-        search_url_regex=r"\"(https://arxiv\.org/abs/\d+?\.\d+?)\"",
-        search_method="arxiv"
+        search_url_regex=urls_regex['arXiv'],
+        search_method="arXiv"
     )
     return search_authors(
         urls, query,
@@ -174,8 +182,8 @@ def ieee_search(search_engine_url: str, query: str, **kwargs):
 
     urls = search_url(
         search_engine_url, query,
-        search_url_regex=r"\"(https://ieeexplore\.ieee\.org/document/\d*)\"",
-        search_method="ieee"
+        search_url_regex=urls_regex['IEEE'],
+        search_method="IEEE"
     )
     return search_authors(
         urls, query,
@@ -207,8 +215,8 @@ def acm_search(search_engine_url: str, query: str, **kwargs):
 
     urls = search_url(
         search_engine_url, query,
-        search_url_regex=r"\"(https://dl.acm.org/doi/\d+\.\d+/\d+\.\d+)\"",  # .../doi/abs/...也可以
-        search_method="acm",
+        search_url_regex=urls_regex['ACM'],
+        search_method="ACM",
     )
     return search_authors(
         urls, query,
@@ -238,8 +246,8 @@ def semanticsscholar_search(search_engine_url: str, query: str, **kwargs):
 
     urls = search_url(
         search_engine_url, query,
-        search_url_regex=r"\"(https://www.semanticscholar.org/paper/.+?)\"",
-        search_method="semantics scholar"
+        search_url_regex=urls_regex['Semantics Scholar'],
+        search_method="Semantics Scholar"
     )
     return search_authors(
         urls, query,
@@ -248,15 +256,76 @@ def semanticsscholar_search(search_engine_url: str, query: str, **kwargs):
     )
 
 
-def search_authors_by_title(
-    titles: [str, list[str]],
-    search_methods: (tuple, list,) = (arxiv_search, ieee_search, acm_search),
-    is_abbreviate_name=True
+search_method_map = {
+    "arXiv": arxiv_search,
+    "IEEE": ieee_search,
+    "ACM": acm_search,
+    "Semantics Scholar": semanticsscholar_search,
+}
+
+
+def search_urls_by_title(
+        titles: [str, list[str]],
+        search_types: (tuple, list,) = ("arXiv", "IEEE", "ACM")
 ):
+    """
+    通过论文标题（或关键词）搜索论文网站链接
+    Args:
+        titles: 论文标题（或关键词）列表
+        search_types: 搜索方式，可以选择 arxiv, ieee, acm 等
+
+    Returns:
+        dict: 搜索结果字典，键为搜索方式，值为搜索结果列表
+    """
     global num_pages
-    if not isinstance(search_methods, tuple) and not isinstance(search_methods, list):
-        search_methods = (search_methods,)
-    search_methods = list(search_methods)
+    if not isinstance(search_types, tuple) and not isinstance(search_types, list):
+        search_types = (search_types,)
+    search_types = list(search_types)
+    if isinstance(titles, str):
+        titles = [titles]
+
+    # 读取 Cookies.txt 文件，设置 headers
+    if os.path.exists("Cookies.txt"):
+        with open("Cookies.txt", "r") as f:
+            cookies = f.read()
+            headers["Cookie"] = cookies
+
+    # 查询论文作者信息，并缩写
+    method_urls_map = {}
+    for title in titles:
+        # 关键词网址 url
+        cur_query = title.replace(" ", "+")
+        search_engine_url = f"https://{search_engine}/{action}?{search_param_name}={cur_query}"   # 翻页 &first=6&FORM=PERE
+        print(f"\n查询网页链接：{search_engine_url}")
+
+        for search_type in search_types:
+            num_pages = 5
+
+            method_urls_map[search_type] = search_url(
+                search_engine_url, cur_query,
+                search_url_regex=urls_regex[search_type],
+                search_method=search_type,
+            )
+
+    return method_urls_map
+
+
+def search_authors_by_title(
+        titles: [str, list[str]],
+        search_types: (tuple, list,) = ("arXiv", "IEEE", "ACM"),
+        is_abbreviate_name=True
+):
+    """
+    通过论文标题（或关键词）搜索论文作者信息
+    Args:
+        titles: 论文标题（或关键词）列表
+        search_types: 搜索方式，可以选择 arxiv_search, ieee_search, acm_search 等
+        is_abbreviate_name: 是否缩写作者姓名
+    """
+    global num_pages
+    if not isinstance(search_types, tuple) and not isinstance(search_types, list):
+        search_types = (search_types,)
+    search_types = list(search_types)
     if isinstance(titles, str):
         titles = [titles]
 
@@ -275,7 +344,8 @@ def search_authors_by_title(
 
         # 在 arxiv 中找到作者信息
         any_complete_match_result = False
-        for search_method in search_methods:
+        for search_type in search_types:
+            search_method = search_method_map[search_type]
             num_pages = 5
 
             any_complete_match_result |= search_method(url_origin, title, is_abbreviate_name=is_abbreviate_name)
@@ -290,7 +360,7 @@ if __name__ == '__main__':
     max_num_pages = 20
     _query = "Attention is all you need"
 
-    search_authors_by_title(_query, arxiv_search)
+    search_authors_by_title(_query, "arXiv")
 
     # 所有要搜索的关键词
     # queries = [
