@@ -1,9 +1,12 @@
-from core import reference_do
+from core.arxiv_crawler import parse_arxiv_html
+from core.html_requester import get_page_content
 
 
 if __name__ == '__main__':
-    title = "Attention is all you need"  # 文章标题，或者能在搜索引擎中搜索到的关键词
+    # 要生成的文章 arXiv 链接
+    url = "https://arxiv.org/abs/1706.03762"
 
-    reference_do.search_authors_by_title(title)  # 检索文章作者
-    # 可以通过更改 reference_do.search_engine 来切换搜索引擎
-    # 可以通过修改 reference_do.num_pages 来调整搜索结果数
+    # 爬取文章摘要并生成 md 文档
+    html_content = get_page_content(url)
+    overview = parse_arxiv_html(html_content, url)
+    overview.make()

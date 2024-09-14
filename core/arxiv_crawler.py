@@ -1,9 +1,10 @@
 import re
+from typing import Optional
 
 from bs4 import BeautifulSoup
 
 from core.html_requester import get_page_content
-from paper import Overview
+from core.paper import Overview
 
 
 def remove_tags(content: str):
@@ -14,7 +15,17 @@ def remove_tags(content: str):
     return _content
 
 
-def parse_arxiv_html(url: str, html_content):
+def parse_arxiv_html(html_content, url: Optional[str] = None):
+    """
+    解析 arXiv 网页内容，返回一个 Overview
+
+    Args:
+        html_content: 网页内容
+        url: 网页地址
+
+    Returns:
+        论文的 Overview
+    """
     soup = BeautifulSoup(html_content, "html.parser")
 
     # 标题
@@ -50,6 +61,6 @@ def parse_arxiv_html(url: str, html_content):
 if __name__ == "__main__":
     _url = "https://arxiv.org/abs/1706.03762"
     html_content = get_page_content(_url)
-    overview = parse_arxiv_html(_url, html_content)
+    overview = parse_arxiv_html(html_content, _url)
     overview.make()
 

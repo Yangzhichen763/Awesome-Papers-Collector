@@ -56,7 +56,7 @@ class Overview:
 
 
 if __name__ == "__main__":
-    abstract = " ".join(["It is very long and it is going to be very long." for i in range(10)])
+    _abstract = " ".join(["It is very long and it is going to be very long." for i in range(10)])
     paper = Overview(
         url="https://arxiv.org/abs/2103.12345",
         title="Title of the Paper",
@@ -64,6 +64,6 @@ if __name__ == "__main__":
         authors=["Author1", "Author2", "Author3"],
         first_date="2021-03-01",
         abstract="Abstract of the paper goes here. And this is a very long abstract. "
-                 f"{abstract}"
+                 f"{_abstract}"
     )
     paper.make()
