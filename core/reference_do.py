@@ -1,12 +1,11 @@
 import os.path
-from time import sleep
 from typing import Callable, Optional
 
-import requests
 import re
 from bs4 import BeautifulSoup
 
 from core.console import colored_print
+from core.html_requester import get_page_content, request_headers as headers
 
 
 search_engine = "cn.bing.com"
@@ -15,11 +14,6 @@ search_param_name = "q"
 
 num_pages = 5
 max_num_pages = 20
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-}   # Cookie 很重要，相当于个人喜好，大数据（一个经常看论文的人更容易搜到论文）
 
 
 class ReferenceData:
@@ -32,21 +26,6 @@ class ReferenceData:
         self.authors = authors
         self.abstract = abstract
         self.url = url
-
-
-def get_page_content(url: str):
-    """
-    获取网页的 html 内容
-    """
-    while True:
-        try:
-            response = requests.get(url=url, headers=headers)   # 通过 url 获取网页相应
-            response.raise_for_status()                         # 检查相应状态码
-            content = response.text                             # 获取网页内容
-            return content
-        except requests.exceptions.RequestException as e:
-            print(f"获取网页内容失败：{e}，\n重试中...")
-            sleep(0.1)                                          # 重试间隔
 
 
 # 缩写作者姓名
@@ -73,9 +52,6 @@ def search(url: str, query: str,
         query: 要搜索的关键词
         search_url_regex: 对搜索结果进行匹配的正则表达式
         html_solver: 对搜索结果进行解析的函数
-        regex_title: 对文章标题进行匹配的正则表达式
-        regex_authors_html: 对作者信息 html 进行匹配的正则表达式
-        regex_author: 对作者名称进行匹配的正则表达式
         search_method: 搜索方法，可以选择 arxiv, ieee 等
         is_abbreviate_name: 是否缩写作者姓名
 
@@ -279,49 +255,49 @@ def search_authors_by_title(
 
 if __name__ == '__main__':
     max_num_pages = 20
-    query = "Improving single-image defocus deblurring: How dual-pixel images help through multi-task learning"
+    query = "Attention is all you need"
 
-    search_authors_by_title(query, semanticsscholar_search)
+    search_authors_by_title(query, arxiv_search)
     exit(0)
 
     # 所有要搜索的关键词
-    queries = [
-        "Improving single-image defocus deblurring: How dual-pixel images help through multi-task learning",
-        "Defocus deblurring using dual-pixel data",
-        "End-to-end object detection with transformers",
-        "Transformer tracking",
-        "Rethinking coarse-to-fine approach in single image deblurring",
-        "Focal network for image restoration",
-        "Deep defocus map estimation using domain adaptation",
-        "Iterative filter adaptive network for single image defocus deblurring",
-        "Neumann network with recursive kernels for single image defocus deblurring",
-        "Learning to deblur using light field generated and real defocus images",
-        "Discriminative blur detection features",
-        "Just noticeable defocus blur detection and estimation",
-        "Single image defocus deblurring using kernel-sharing parallel atrous convolutions",
-        "Segmenter: Transformer for semantic segmentation",
-        "Pyramid vision transformer: A versatile backbone for dense prediction without convolutions",
-        "Restormer: Efficient Transformer for high-resolution image restoration",
-        "Efficient fusion of depth information for defocus deblurring",
-        "Learnable blur kernel for single-image defocus deblurring in the wild",
-        "An image is worth 16x16 words: Transformers for image recognition at scale",
-        "Non-parametric blur map regression for depth of field extension",
-        "Blind deconvolution by means of the Richardson–Lucy algorithm",
-        "Recurrent relational memory network for unsupervised image captioning",
-        "Edge-based defocus blur estimation with adaptive scale selection",
-        "Fast image deconvolution using hyper-Laplacian priors",
-        "Image deblurring by exploring in-depth properties of Transformer",
-        "A motion deblur method based on multi-scale high frequency residual image learning",
-        "Defocus image deblurring network with defocus map estimation as auxiliary task",
-        "Gaussian kernel mixture network for single image defocus deblurring",
-        "Revisiting image deblurring with an efficient ConvNet",
-        "AIFNet: All-in-focus image restoration network using a light field-based dataset",
-        "DDABNet: A dense Do-conv residual network with multisupervision and mixed attention for image deblurring",
-        "Attention is all you need"
-    ]
-
-    search_authors_by_title(
-        queries,
-        search_methods=[arxiv_search, ieee_search],
-        is_abbreviate_name=True
-    )
+    # queries = [
+    #     "Improving single-image defocus deblurring: How dual-pixel images help through multi-task learning",
+    #     "Defocus deblurring using dual-pixel data",
+    #     "End-to-end object detection with transformers",
+    #     "Transformer tracking",
+    #     "Rethinking coarse-to-fine approach in single image deblurring",
+    #     "Focal network for image restoration",
+    #     "Deep defocus map estimation using domain adaptation",
+    #     "Iterative filter adaptive network for single image defocus deblurring",
+    #     "Neumann network with recursive kernels for single image defocus deblurring",
+    #     "Learning to deblur using light field generated and real defocus images",
+    #     "Discriminative blur detection features",
+    #     "Just noticeable defocus blur detection and estimation",
+    #     "Single image defocus deblurring using kernel-sharing parallel atrous convolutions",
+    #     "Segmenter: Transformer for semantic segmentation",
+    #     "Pyramid vision transformer: A versatile backbone for dense prediction without convolutions",
+    #     "Restormer: Efficient Transformer for high-resolution image restoration",
+    #     "Efficient fusion of depth information for defocus deblurring",
+    #     "Learnable blur kernel for single-image defocus deblurring in the wild",
+    #     "An image is worth 16x16 words: Transformers for image recognition at scale",
+    #     "Non-parametric blur map regression for depth of field extension",
+    #     "Blind deconvolution by means of the Richardson–Lucy algorithm",
+    #     "Recurrent relational memory network for unsupervised image captioning",
+    #     "Edge-based defocus blur estimation with adaptive scale selection",
+    #     "Fast image deconvolution using hyper-Laplacian priors",
+    #     "Image deblurring by exploring in-depth properties of Transformer",
+    #     "A motion deblur method based on multi-scale high frequency residual image learning",
+    #     "Defocus image deblurring network with defocus map estimation as auxiliary task",
+    #     "Gaussian kernel mixture network for single image defocus deblurring",
+    #     "Revisiting image deblurring with an efficient ConvNet",
+    #     "AIFNet: All-in-focus image restoration network using a light field-based dataset",
+    #     "DDABNet: A dense Do-conv residual network with multisupervision and mixed attention for image deblurring",
+    #     "Attention is all you need"
+    # ]
+    #
+    # search_authors_by_title(
+    #     queries,
+    #     search_methods=[arxiv_search, ieee_search],
+    #     is_abbreviate_name=True
+    # )
