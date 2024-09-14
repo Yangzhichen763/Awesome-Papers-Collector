@@ -50,17 +50,32 @@ reference_do.search_authors_by_titles(titles)
 
 ## 生成文章 md 文档
 使用方法也非常简单，如下：
+### 根据 arXiv 链接生成文章 md 文档
 ``` python
 from core.arxiv_crawler import parse_arxiv_html
-from core.html_requester import get_page_content
 
 # 要生成的文章 arXiv 链接
 url = "https://arxiv.org/abs/1706.03762"
 
 # 爬取文章摘要并生成 md 文档
-html_content = get_page_content(url)
-overview = parse_arxiv_html(html_content, url)
+overview = parse_arxiv_html(url)
 overview.make()
+```
+### 根据关键词生成文章 md 文档
+``` python
+from core.arxiv_crawler import search_arxiv_by_keyword
+from core.html_requester import get_page_content
+
+# 文章关键词
+query = 'Attention is all you need'
+
+# 爬取文章链接
+urls = search_urls_by_title(query, "arXiv")
+
+# 爬取文章摘要并生成 md 文档
+for url in urls["arXiv"]:
+    overview = parse_arxiv_html(url)
+    overview.make()
 ```
 
 ---
