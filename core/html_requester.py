@@ -25,4 +25,4 @@ def get_page_content(url: str, headers: dict = None):
             return content
         except requests.exceptions.RequestException as e:
             print(f"获取网页内容失败：{e}，\n重试中...")
-            sleep(0.1)                                          # 重试间隔
+            sleep(0.5)                                          # 重试间隔
