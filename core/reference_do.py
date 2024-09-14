@@ -40,26 +40,25 @@ def abbreviate_name(name: str):
     return " ".join(name_list)
 
 
-# 包括一下的 search 都是检索论文作者用的，有其他用途可以自行更改
-def search(url: str, query: str,
-           search_url_regex: str, html_solver: Callable[[str], ReferenceData],  # regex_title: str, regex_authors_html: str, regex_author: str,
-           search_method: str,
-           is_abbreviate_name=True):
+def search_url(
+        search_engine_url: str,
+        query: str,
+        search_url_regex: str,
+        search_method: str,
+):
     """
-
+    通过给定的网页检索地址，提取检索结果中与论文网站相关的链接
     Args:
-        url: 网页的检索地址
+        search_engine_url: 网页的检索地址
         query: 要搜索的关键词
         search_url_regex: 对搜索结果进行匹配的正则表达式
-        html_solver: 对搜索结果进行解析的函数
-        search_method: 搜索方法，可以选择 arxiv, ieee 等
-        is_abbreviate_name: 是否缩写作者姓名
+        search_method: 搜索方法，可以选择 arxiv, ieee, acm 等
 
     Returns:
-        bool: 是否找到标题与关键词完全匹配的论文
+        list[str]: 与论文网站相关的链接
     """
     global num_pages
-    url_search = url
+    url_search = search_engine_url
 
     # 获取网页的检索内容 html，并提取检索结果中与论文网站相关的链接
     urls_result = []
@@ -71,7 +70,7 @@ def search(url: str, query: str,
             break
         else:
             print(f"\r正在寻找有关 {search_method} 的链接，当前页码 {num_pages}~{num_pages+9}...", end="")
-            url_search = url + f"&first={num_pages}"  # 翻页
+            url_search = search_engine_url + f"&first={num_pages}"  # 翻页
             num_pages += 10
 
     # 判断是否有搜索结果
@@ -81,20 +80,41 @@ def search(url: str, query: str,
     else:
         print(f"\r以关键词 {query} 搜索，超过 {max_num_pages} 页未找到 {search_method} 链接，退出...")
 
-    if len(urls_result) == 0:
-        return False
+    return urls_result
+
+
+# 包括一下的 search 都是检索论文作者用的，有其他用途可以自行更改
+def search_authors(
+        urls: [list[str], str],
+        query: str,
+        html_solver: Callable[[str], ReferenceData],
+        is_abbreviate_name=True
+):
+    """
+    通过论文网站链接检索论文作者信息
+    Args:
+        urls: 论文网站链接列表
+        query: 要搜索的关键词
+        html_solver: 对搜索结果进行解析的函数
+        is_abbreviate_name: 是否缩写作者姓名
+
+    Returns:
+        bool: 是否找到标题与关键词完全匹配的论文
+    """
+    if isinstance(urls, str):
+        urls = [urls]
 
     # 访问论文网站链接，提取作者信息
-    for url_result in urls_result:
+    for url in urls:
         # 获取网页 html 内容
-        page_content = get_page_content(url_result)
+        page_content = get_page_content(url)
 
         # 提取文章信息
         reference_data = html_solver(page_content)
-        reference_data.url = url_result
+        reference_data.url = url
         title = reference_data.title
         authors = reference_data.authors
-        print(f"在 {search_method} 链接 {url_result} 中，文章标题为：{title}，提取出的作者信息如下：\n{authors}")
+        print(f"在链接 {url} 中，文章标题为：{title}，提取出的作者信息如下：\n{authors}")
 
         # 缩写作者姓名
         if is_abbreviate_name:
@@ -116,7 +136,7 @@ def search(url: str, query: str,
     return False
 
 
-def arxiv_search(url: str, query: str, **kwargs):
+def arxiv_search(search_engine_url: str, query: str, **kwargs):
     def html_solver(html_content):
         # 提取页面中文章的标题
         title = re.findall(r"<title>\[\d+?\.\d+?] (.*?)</title>", html_content)[0]
@@ -128,16 +148,19 @@ def arxiv_search(url: str, query: str, **kwargs):
 
         return ReferenceData(title=title, authors=authors)
 
-    return search(
-        url, query,
+    urls = search_url(
+        search_engine_url, query,
         search_url_regex=r"\"(https://arxiv\.org/abs/\d+?\.\d+?)\"",
+        search_method="arxiv"
+    )
+    return search_authors(
+        urls, query,
         html_solver=html_solver,
-        search_method="arxiv",
         **kwargs
     )
 
 
-def ieee_search(url: str, query: str, **kwargs):
+def ieee_search(search_engine_url: str, query: str, **kwargs):
     def html_solver(html_content):
         # 提取页面中文章的标题
         title = re.findall(r"<title>(.*?)(?: [|].*?)?</title>", html_content)[0]
@@ -149,23 +172,27 @@ def ieee_search(url: str, query: str, **kwargs):
 
         return ReferenceData(title=title, authors=authors)
 
-    return search(
-        url, query,
+    urls = search_url(
+        search_engine_url, query,
         search_url_regex=r"\"(https://ieeexplore\.ieee\.org/document/\d*)\"",
+        search_method="ieee"
+    )
+    return search_authors(
+        urls, query,
         html_solver=html_solver,
-        search_method="ieee",
         **kwargs
     )
 
 
-def acm_search(url: str, query: str, **kwargs):
+def acm_search(search_engine_url: str, query: str, **kwargs):
     def html_solver(html_content):
         # 提取也页面中文章的标题
         soup = BeautifulSoup(html_content, "html.parser")
 
         # 提取页面中文章的标题
         titles = soup.findAll("title")
-        title = re.findall(r"(.*?)(?: [|].*?)?", titles[0].text)[0]
+        print(titles[0].text)
+        title = re.findall(r"(.*?)(?: [|].*)+?", titles[0].text)[0]
 
         # 提取页面中所有作者名字
         authors_family_name = soup.findAll("span", property="familyName")
@@ -178,18 +205,21 @@ def acm_search(url: str, query: str, **kwargs):
 
         return ReferenceData(title=title, authors=authors)
 
-    return search(
-        url, query,
+    urls = search_url(
+        search_engine_url, query,
         search_url_regex=r"\"(https://dl.acm.org/doi/\d+\.\d+/\d+\.\d+)\"",  # .../doi/abs/...也可以
-        html_solver=html_solver,
         search_method="acm",
+    )
+    return search_authors(
+        urls, query,
+        html_solver=html_solver,
         **kwargs
     )
 
 
-# TODO: 增加其他论文检索网页的搜索功能 semantics_scholar
+# TODO: semantics_scholar 检索速度太慢
 # noinspection SpellCheckingInspection
-def semanticsscholar_search(url: str, query: str, **kwargs):
+def semanticsscholar_search(search_engine_url: str, query: str, **kwargs):
     def html_solver(html_content):
         # 提取也页面中文章的标题
         soup = BeautifulSoup(html_content, "html.parser")
@@ -206,11 +236,14 @@ def semanticsscholar_search(url: str, query: str, **kwargs):
 
         return ReferenceData(title=title, authors=authors)
 
-    return search(
-        url, query,
+    urls = search_url(
+        search_engine_url, query,
         search_url_regex=r"\"(https://www.semanticscholar.org/paper/.+?)\"",
+        search_method="semantics scholar"
+    )
+    return search_authors(
+        urls, query,
         html_solver=html_solver,
-        search_method="semantics scholar",
         **kwargs
     )
 
@@ -255,10 +288,9 @@ def search_authors_by_title(
 
 if __name__ == '__main__':
     max_num_pages = 20
-    query = "Attention is all you need"
+    _query = "Attention is all you need"
 
-    search_authors_by_title(query, arxiv_search)
-    exit(0)
+    search_authors_by_title(_query, arxiv_search)
 
     # 所有要搜索的关键词
     # queries = [
