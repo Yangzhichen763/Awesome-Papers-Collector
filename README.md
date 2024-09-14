@@ -1,13 +1,23 @@
 <div align="center">
-<h1>Reference Easy Editor</h1>
+<h1>Reference Editor</h1>
 
-<a href="https://github.com/Yangzhichen763/referenceEditor"><img src='https://img.shields.io/badge/code-Reference Editor-green' alt='Project Page'></a>
+<a href="https://github.com/Yangzhichen763/ReferenceEditor"><img src='https://img.shields.io/badge/code-Reference Editor-darkgreen' alt='Project Page'></a>
 </div>
 
 这个项目目前仅实现了简单的功能，其中包括
 - 爬取文章作者：通过单篇或多篇文章名，爬取文章作者（可选缩写作者名）
 - 敬请期待
 
+# Preparation
+克隆本仓库到本地
+```bash
+git clone https://github.com/Yangzhichen763/ReferenceEditor.git
+cd ReferenceEditor
+```
+安装依赖
+```bash
+pip install -r requirements.txt
+```
 
 # Usage
 ## 爬取文章作者
