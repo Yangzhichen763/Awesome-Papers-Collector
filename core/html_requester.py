@@ -23,7 +23,6 @@ def get_page_content(url: str, headers: dict = None, max_retry_times: int = 3):
             with open("Cookie", "r") as f:
                 cookie = f.read()
                 headers["Cookie"] = cookie
-                print(f"{headers}")
 
     retry_times = 0
     while retry_times <= max_retry_times:
