@@ -1,4 +1,3 @@
-import os.path
 from typing import Callable, Optional
 
 import re
