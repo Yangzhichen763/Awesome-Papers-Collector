@@ -64,7 +64,9 @@ def parse_arxiv_html(url: str):
         # 项目链接（源代码）
         if project_url is None:
             print("\r正在寻找项目链接...", end="")
-            project_url = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")["href"]
+            project_url_html = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")
+            if project_url_html is not None:
+                project_url = project_url_html["href"]
 
     print("\r完成 arXiv 网页内容的提取！")
     return Overview(
