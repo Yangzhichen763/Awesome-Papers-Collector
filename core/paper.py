@@ -47,14 +47,24 @@ class Overview:
         month = parse_month(month)
         return f"{year}{Overview.date_sep}{month}{Overview.date_sep}{day}"
 
+    @staticmethod
+    def make_project_md(project_url):
+        if project_url is None:
+            project_md = ""
+        else:
+            project_md = (
+                f"<a href=\"{project_url}\">"
+                f"<img src='https://img.shields.io/badge/code-Project Page-darkgreen' alt='Project Page'>"
+                f"</a>"
+            )
+        return project_md
+
     def make(self):
         # 创建文件夹
-        filename = f"../papers/{self.title}.md"
+        cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filename = f"{cur_dir}/papers/{self.title}.md"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        project_md = (f"<a href=\"{self.project_url}\">"
-                      f"<img src='https://img.shields.io/badge/code-Project Page-darkgreen' alt='Project Page'>"
-                      f"</a>")
         # 编辑内容
         content = rf"""
 <div align="center">
@@ -64,7 +74,7 @@ class Overview:
 {self.make_authors_md(self.authors)}
 
 <a href="{self.arxiv_url}"><img src='https://img.shields.io/badge/arXiv-Paper-red' alt='Paper'></a>
-{project_md}
+{self.make_project_md(self.project_url)}
 </div>
 
 {self.abstract}
@@ -74,7 +84,7 @@ class Overview:
         with open(filename, "wb") as file:
             file.write(content.encode())
 
-        print(f"完成文档 {filename} 的创建")
+        print(f"完成文档 {os.path.relpath(filename)} 的创建")
 
 
 if __name__ == "__main__":
@@ -84,7 +94,7 @@ if __name__ == "__main__":
         title="Title of the Paper",
         subjects=["Subject1", "Subject2"],
         authors=["Author1", "Author2", "Author3"],
-        first_date="2021-03-01",
+        first_date="01 Jun 2021",
         abstract="Abstract of the paper goes here. And this is a very long abstract. "
                  f"{_abstract}"
     )
