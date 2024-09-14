@@ -1,3 +1,5 @@
+import os
+
 import requests
 from time import sleep
 
@@ -16,6 +18,11 @@ def get_page_content(url: str, headers: dict = None, max_retry_times: int = 3):
     """
     if headers is None:
         headers = request_headers
+        # 读取 Cookies.txt 文件，设置 headers
+        if os.path.exists("Cookies.txt"):
+            with open("Cookies.txt", "r") as f:
+                cookies = f.read()
+                headers["Cookie"] = cookies
 
     retry_times = 0
     while retry_times <= max_retry_times:

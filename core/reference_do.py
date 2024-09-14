@@ -284,12 +284,6 @@ def search_urls_by_title(
     if isinstance(titles, str):
         titles = [titles]
 
-    # 读取 Cookies.txt 文件，设置 headers
-    if os.path.exists("Cookies.txt"):
-        with open("Cookies.txt", "r") as f:
-            cookies = f.read()
-            headers["Cookie"] = cookies
-
     # 查询论文作者信息，并缩写
     method_urls_map = {}
     for title in titles:
@@ -328,12 +322,6 @@ def search_authors_by_title(
     search_types = list(search_types)
     if isinstance(titles, str):
         titles = [titles]
-
-    # 读取 Cookies.txt 文件，设置 headers
-    if os.path.exists("Cookies.txt"):
-        with open("Cookies.txt", "r") as f:
-            cookies = f.read()
-            headers["Cookie"] = cookies
 
     # 查询论文作者信息，并缩写
     for title in titles:
