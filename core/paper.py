@@ -7,7 +7,28 @@ from core.md import MDClass
 
 
 class Figure(MDClass):
+    """
+    原本的图片提取代码如下：
+    figures = []
+    figure_url_htmls: list[BeautifulSoup] = html_soup.findAll("figure", class_="ltx_figure")  # 如果要读取表格 class_="ltx_table"
+    if len(figure_url_htmls) > 0:
+        for figure_url_html in figure_url_htmls:
+            # 图片链接
+            image_urls = [
+                f"{html_url}/{image_html['src']}"
+                for image_html in figure_url_html.findAll("img")
+            ]
+            # 图片标题
+            caption = figure_url_html.find("figcaption").text.strip()
+
+            figure = Figure(
+                urls=image_urls,
+                caption=caption
+            )
+            figures.append(figure)
+    """
     single_image_width = 0.5  # 单张图片的宽度占比
+
     def __init__(
             self, *,
             urls: [str, list[str]],
@@ -21,20 +42,19 @@ class Figure(MDClass):
     @staticmethod
     def calculate_image_width(count):
         """
-        根据图片数量计算单张图片宽度占比
+        根据图片数量计算总的图片宽度占比
         """
         return (2 / math.pi * (1 - Figure.single_image_width) * math.atan(count - 1)
-                + Figure.single_image_width) / count
+                + Figure.single_image_width)
 
     @staticmethod
     def make_figure_md(figure_url, count):
-        width = f"{Figure.calculate_image_width(count) * 100}%"
+        width = f"{Figure.calculate_image_width(count) * 100:.2f}%"
         return f'''<img 
-    style="border-radius: 0.3125em; box-shadow: 0 2px 10px 0 #2222" 
+    style="border-radius: 0.3125em; box-shadow: 0 2px 10px 0 {MDClass.shadow_color}" 
     width={width} 
     src="{figure_url}" 
     alt="{figure_url}">
-</img>
 '''
 
     def get_md(self):
@@ -45,7 +65,7 @@ class Figure(MDClass):
         return f'''
 <center>
 {"".join(figures_md)}
-<div style="color: #999; padding: 2px;">{self.caption}</div>
+<div style="color: #999; padding: 2px; font-size: 0.8em;">{self.caption}</div>
 </center>
 '''
 

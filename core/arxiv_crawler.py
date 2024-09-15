@@ -1,10 +1,10 @@
 import re
-from typing import Optional
 
 from bs4 import BeautifulSoup
 
 from core.html_requester import get_page_content
 from core.paper import Overview, Figure
+from core.paper_soup import FigureSoup
 
 
 def parse_arxiv_html(url: str):
@@ -18,7 +18,7 @@ def parse_arxiv_html(url: str):
         论文的 Overview
     """
     # == 摘要内容 ==
-    print("\r正在寻找 arXiv 的 abstract 版内容...", end="")
+    print("\r正在寻找并请求 arXiv 的 abstract 版内容...", end="")
     html_content = get_page_content(url)
     soup = BeautifulSoup(html_content, "html.parser")
 
@@ -43,7 +43,7 @@ def parse_arxiv_html(url: str):
 
     md_classes = []
     # == html 内容 ==
-    print("\r正在寻找 arXiv 的 HTML 版内容...", end="")
+    print("\r正在寻找并请求 arXiv 的 HTML 版内容...", end="")
     html_url = url.replace("abs", "html")   # 将 arXiv 的摘要链接转换为 HTML 链接
     html_content = get_page_content(html_url)
     if html_content is not None:
@@ -58,22 +58,17 @@ def parse_arxiv_html(url: str):
         # 图片
         print("\r正在提取图片链接和标题...", end="")
         figures = []
-        figure_url_htmls = html_soup.findAll("figure", class_="ltx_figure")  # 如果要读取表格 class_="ltx_table"
-        if len(figure_url_htmls) > 0:
-            for figure_url_html in figure_url_htmls:
-                # 图片链接
-                image_urls = [
-                    f"{html_url}/{image_html['src']}"
-                    for image_html in figure_url_html.findAll("img")
-                ]
-                # 图片标题
-                caption = figure_url_html.find("figcaption").text.strip()
+        figure_url_htmls: list[BeautifulSoup] = html_soup.findAll("figure", class_="ltx_figure")
+        for figure_url_html in figure_url_htmls:
+            # 避免重复处理子 html
+            for figure_child_url_html in figure_url_html.findAll("figure", class_="ltx_figure"):
+                figure_url_htmls.remove(figure_child_url_html)
 
-                figure = Figure(
-                    urls=image_urls,
-                    caption=caption
-                )
-                figures.append(figure)
+            for image_html in figure_url_html.findAll("img"):
+                image_url = f"{html_url}/{image_html['src']}"
+                image_html["src"] = image_url
+            figure_html = FigureSoup(figure_url_html)
+            figures.append(figure_html)
 
         md_classes += figures
 
