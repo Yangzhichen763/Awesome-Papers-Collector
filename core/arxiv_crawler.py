@@ -4,7 +4,7 @@ from typing import Optional
 from bs4 import BeautifulSoup
 
 from core.html_requester import get_page_content
-from core.paper import Overview
+from core.paper import Overview, Figure
 
 
 def parse_arxiv_html(url: str):
@@ -40,11 +40,8 @@ def parse_arxiv_html(url: str):
     abstract = abstract_with_tag.replace("Abstract:", "")
     # 项目链接（源代码）
     project_url_html = soup.find("a", class_="link-external link-https")
-    if project_url_html is not None:
-        project_url = project_url_html["href"]
-    else:
-        project_url = None
 
+    md_classes = []
     # == html 内容 ==
     print("\r正在寻找 arXiv 的 HTML 版内容...", end="")
     html_url = url.replace("abs", "html")   # 将 arXiv 的摘要链接转换为 HTML 链接
@@ -53,22 +50,44 @@ def parse_arxiv_html(url: str):
         print("\r将 HTML 内容转换为 BeautifulSoup 对象...", end="")
         html_soup = BeautifulSoup(html_content, "html.parser")
 
-        # 项目链接（源代码）
-        if project_url is None:
+        # 项目链接（源代码）（如果 abstract 版没有提供的话）
+        if project_url_html is None:
             print("\r正在寻找项目链接...", end="")
             project_url_html = html_soup.find("a", class_="ltx_ref ltx_url ltx_font_typewriter")
-            if project_url_html is not None:
-                project_url = project_url_html["href"]
+
+        # 图片
+        print("\r正在提取图片链接和标题...", end="")
+        figures = []
+        figure_url_htmls = html_soup.findAll("figure", class_="ltx_figure")  # 如果要读取表格 class_="ltx_table"
+        if len(figure_url_htmls) > 0:
+            for figure_url_html in figure_url_htmls:
+                # 图片链接
+                image_urls = [
+                    f"{html_url}/{image_html['src']}"
+                    for image_html in figure_url_html.findAll("img")
+                ]
+                # 图片标题
+                caption = figure_url_html.find("figcaption").text.strip()
+
+                figure = Figure(
+                    urls=image_urls,
+                    caption=caption
+                )
+                figures.append(figure)
+
+        md_classes += figures
 
     print("\r完成 arXiv 网页内容的提取！")
     return Overview(
         arxiv_url=url,
-        project_url=project_url,
+        html_url=html_url if html_content is not None else None,
+        project_url=project_url_html["href"] if project_url_html is not None else None,
         title=title,
         subjects=subjects,
         authors=authors,
         first_date=first_date,
-        abstract=abstract
+        abstract=abstract,
+        md_classes=md_classes,
     )
 
 

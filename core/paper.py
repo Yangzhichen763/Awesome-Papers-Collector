@@ -1,27 +1,81 @@
+import math
 import os
 import re
 from typing import Optional
 
+from md import MDClass
 
-class Overview:
+
+class Figure(MDClass):
+    single_image_width = 0.5  # 单张图片的宽度占比
+    def __init__(
+            self, *,
+            urls: [str, list[str]],
+            caption: str,
+    ):
+        super().__init__()
+
+        self.urls = urls
+        self.caption = caption
+
+    @staticmethod
+    def calculate_image_width(count):
+        """
+        根据图片数量计算单张图片宽度占比
+        """
+        return (2 / math.pi * (1 - Figure.single_image_width) * math.atan(count - 1)
+                + Figure.single_image_width) / count
+
+    @staticmethod
+    def make_figure_md(figure_url, count):
+        width = f"{Figure.calculate_image_width(count) * 100}%"
+        return f'''<img 
+    style="border-radius: 0.3125em; box-shadow: 0 2px 10px 0 #2222" 
+    width={width} 
+    src="{figure_url}">
+</img>
+'''
+
+    def get_md(self):
+        figures_md = [
+            self.make_figure_md(url, len(self.urls))
+            for url in self.urls
+        ]
+        return f'''
+<center>
+{"".join(figures_md)}
+<div style="color: #999; padding: 2px;">{self.caption}</div>
+</center>
+'''
+
+
+class Overview(MDClass):
     date_sep = "."  # 日期分隔符，比如 20xx.01.xx
 
     def __init__(
         self, *,
-        arxiv_url: str, project_url: Optional[str] = None,
-        title,
-        subjects,
-        authors,
-        first_date,
-        abstract
+        arxiv_url: str, html_url: Optional[str] = None, project_url: Optional[str] = None,
+        title: str,
+        subjects: str,
+        authors: list[str],
+        first_date: str,
+        abstract: str,
+        md_classes: Optional[list[MDClass]] = None,
     ):
+        super().__init__()
+
         self.arxiv_url = arxiv_url
+        self.html_url = html_url
         self.project_url = project_url
+
         self.title = title
         self.subjects = subjects
         self.authors = authors
         self.first_date = first_date
         self.abstract = abstract
+
+        self.content = self.get_md()
+        self.md_class = md_classes
 
     @staticmethod
     def validate_title(title):
@@ -68,14 +122,8 @@ class Overview:
             )
         return project_md
 
-    def make(self):
-        # 创建文件夹
-        cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        filename = f"{cur_dir}/papers/{self.validate_title(self.title)}.md"
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-
-        # 编辑内容
-        content = rf"""
+    def get_md(self):
+        content = f'''
 <div align="center">
 <h1>{self.title}</h1>
 {self.make_date_md(self.first_date)}
@@ -87,7 +135,28 @@ class Overview:
 </div>
 
 {self.abstract}
-"""
+'''
+        return content
+
+    def append_md(self, mds: [MDClass, list[MDClass]]):
+        if mds is None:
+            return
+
+        if not isinstance(mds, list):
+            mds = [mds]
+
+        for md in mds:
+            self.content += f"<br>{md.get_md()}<br>"
+
+    def make(self):
+        # 创建文件夹
+        cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filename = f"{cur_dir}/papers/{self.validate_title(self.title)}.md"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        # 生成内容
+        self.append_md(self.md_class)
+        content = self.content
 
         # 写入文件
         with open(filename, "wb") as file:
@@ -101,7 +170,7 @@ if __name__ == "__main__":
     paper = Overview(
         arxiv_url="https://arxiv.org/abs/2103.12345",
         title="Title of the Paper",
-        subjects=["Subject1", "Subject2"],
+        subjects="Subject1, Subject2",
         authors=["Author1", "Author2", "Author3"],
         first_date="01 Jun 2021",
         abstract="Abstract of the paper goes here. And this is a very long abstract. "
