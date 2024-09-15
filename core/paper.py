@@ -51,7 +51,7 @@ class Figure(MDClass):
 
 
 class Overview(MDClass):
-    date_sep = "."  # 日期分隔符，比如 20xx.01.xx
+    date_sep = "-"  # 日期分隔符，比如 20xx.01.xx
 
     def __init__(
         self, *,
@@ -109,7 +109,7 @@ class Overview(MDClass):
         # 将 xx Jan 20xx 格式化为 20xx-01-xx
         day, month, year = date.split(" ")
         month = parse_month(month)
-        return f"{year}{Overview.date_sep}{month}{Overview.date_sep}{day}"
+        return f"**{year}{Overview.date_sep}{month}{Overview.date_sep}{day}**"
 
     @staticmethod
     def make_shields_md(url, header, body, color):
@@ -127,6 +127,7 @@ class Overview(MDClass):
         content = f'''
 <div align="center">
 <h1>{self.title}</h1>
+
 {self.make_date_md(self.first_date)}
 
 {self.make_authors_md(self.authors)}
