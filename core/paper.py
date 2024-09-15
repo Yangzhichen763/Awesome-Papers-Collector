@@ -3,7 +3,7 @@ import os
 import re
 from typing import Optional
 
-from md import MDClass
+from core.md import MDClass
 
 
 class Figure(MDClass):
