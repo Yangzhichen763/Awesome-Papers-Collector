@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional
 
 
@@ -21,6 +22,14 @@ class Overview:
         self.authors = authors
         self.first_date = first_date
         self.abstract = abstract
+
+    @staticmethod
+    def validate_title(title):
+        """
+        验证将标题作为文件名是否合法，并将其转换为合法的文件名
+        """
+        new_title = re.sub(r'[\\/:*?"<>|\r\n]+', "_", title)
+        return new_title
 
     @staticmethod
     def make_authors_md(authors):
@@ -62,7 +71,7 @@ class Overview:
     def make(self):
         # 创建文件夹
         cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        filename = f"{cur_dir}/papers/{self.title}.md"
+        filename = f"{cur_dir}/papers/{self.validate_title(self.title)}.md"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         # 编辑内容
