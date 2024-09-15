@@ -32,7 +32,8 @@ class Figure(MDClass):
         return f'''<img 
     style="border-radius: 0.3125em; box-shadow: 0 2px 10px 0 #2222" 
     width={width} 
-    src="{figure_url}">
+    src="{figure_url}" 
+    alt="{figure_url}">
 </img>
 '''
 
