@@ -26,26 +26,26 @@ pip install -r requirements.txt
 使用方法非常简单，如下：
 ### 爬取单篇文章的作者
 ``` python
-from core import reference_do
+from core import website_search
 
 # 文章标题，或者能在搜索引擎中搜索到的关键词
 title = "Attention is all you need"
 
 # 检索文章作者
-reference_do.search_authors_by_title(title)
+website_search.search_authors_by_title(title)
 ```
 贴心小卫士:
 - 可以通过更改 `reference_do.search_engine` 来切换搜索引擎
 - 可以通过修改 `reference_do.num_pages` 来调整搜索结果数
 ### 爬取多篇文章的作者
 ``` python
-from core import reference_do
+from core import website_search
 
 # 文章标题列表，或者能在搜索引擎中搜索到的关键词列表
 titles = ["Attention is all you need", "Latent Diffusion Model"]
 
 # 检索文章作者
-reference_do.search_authors_by_titles(titles)
+website_search.search_authors_by_titles(titles)
 ```
 
 ## 生成文章 md 文档
