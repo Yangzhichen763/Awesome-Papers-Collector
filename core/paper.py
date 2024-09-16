@@ -135,17 +135,28 @@ class Overview(MDClass):
         day = parse_day(day)
         return f"**{year}{Overview.date_sep}{month}{Overview.date_sep}{day}**"
 
-    @staticmethod
-    def make_shields_md(url, header, body, color):
-        if url is None:
-            md = ""
-        else:
-            md = (
-                f"<a href=\"{url}\">"
-                f"<img src='https://img.shields.io/badge/{header}-{body}-{color}' alt='{body}'>"
-                f"</a>"
-            )
-        return md
+    def make_shields_md(self):
+        def make_shield_md(url, header, body, color):
+            if url is None:
+                md = ""
+            else:
+                md = (
+                    f"<a href=\"{url}\">"
+                    f"<img src='https://img.shields.io/badge/{header}-{body}-{color}' alt='{body}'>"
+                    f"</a>"
+                )
+            return md
+
+        shields = [
+            make_shield_md(self.arxiv_url, header="arXiv", body="Paper", color="red"),
+            make_shield_md(self.html_url, header="html", body="HTML", color="yellow"),
+            make_shield_md(self.project_url, header="code", body="Project Page", color="darkgreen")
+        ]
+        for shield in shields:
+            if shield == "":
+                shields.remove(shield)
+        shield_md = "\n".join(shields)
+        return shield_md
 
     def get_md(self):
         content = f'''
@@ -156,9 +167,7 @@ class Overview(MDClass):
 
 {self.make_authors_md(self.authors)}
 
-<a href="{self.arxiv_url}"><img src='https://img.shields.io/badge/arXiv-Paper-red' alt='Paper'></a>
-{self.make_shields_md(self.html_url, header="html", body="HTML", color="yellow")}
-{self.make_shields_md(self.project_url, header="code", body="Project Page", color="darkgreen")}
+{self.make_shields_md()}
 </div>
 
 {self.abstract}
