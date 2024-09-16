@@ -171,10 +171,12 @@ class Overview(MDClass):
         for md in mds:
             self.content += f"<br>{md.get_md()}<br>"
 
-    def make(self):
+    def make(self, rel_dir: Optional[str] = None):
         # 创建文件夹
-        cur_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        filename = f"{cur_dir}/papers/{self.validate_title(self.title)}.md"
+        cur_dir: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "papers")
+        if rel_dir is not None:
+            cur_dir = os.path.join(cur_dir, rel_dir)
+        filename = f"{cur_dir}/{self.validate_title(self.title)}.md"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         # 生成内容
