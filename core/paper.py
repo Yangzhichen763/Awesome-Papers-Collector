@@ -124,11 +124,15 @@ class Overview(MDClass):
     def make_date_md(date):
         def parse_month(_month):
             months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-            return f"{months.index(_month) + 1}".rjust(2, "0")
+            return f"{months.index(_month) + 1:02d}"  # 或者 .rjust(2, "0")
+
+        def parse_day(_day):
+            return f"{int(_day):02d}"
 
         # 将 xx Jan 20xx 格式化为 20xx-01-xx
         day, month, year = date.split(" ")
         month = parse_month(month)
+        day = parse_day(day)
         return f"**{year}{Overview.date_sep}{month}{Overview.date_sep}{day}**"
 
     @staticmethod
