@@ -82,3 +82,10 @@ for url in urls["arXiv"]:
 
 # 敬请期待
 更多功能正在开发中，敬请期待！
+
+---
+
+# 推荐工具
+- 从 arXiv 引用生成信息全面的引用的简单工具: 
+  - [(github) Rebiber: A tool for normalizing bibtex with official info.](https://github.com/yuchenlin/rebiber)
+  - [(huggingface) Rebiber Hugging Face Demo](https://huggingface.co/spaces/yuchenlin/Rebiber)
