@@ -1,42 +1,26 @@
-from typing import Callable, Optional
+from abc import ABC, abstractmethod
 
 import re
 from bs4 import BeautifulSoup
 
 from core.console import colored_print
-from core.html_requester import get_page_content, request_headers as headers
+from core.html_requester import get_page_content
+from core.reference import Reference
 
 
 search_engine = "cn.bing.com"
 action = "search"
 search_param_name = "q"
 
-num_pages = 5
+start_page = 5
 max_num_pages = 20
 
 
-class ReferenceData:
-    def __init__(self, *,
-                 title: str,
-                 authors: list[str],
-                 abstract: Optional[str] = None,
-                 url: Optional[str] = None):
-        self.title = title
-        self.authors = authors
-        self.abstract = abstract
-        self.url = url
-
-
-# 缩写作者姓名
-def abbreviate_name(name: str):
-    """
-    缩写作者姓名
-    """
-    name_list = name.split()
-    name_list = [name_list[-1], *name_list[:-1]]
-    for i in range(len(name_list))[1:]:
-        name_list[i] = name_list[i][0]
-    return " ".join(name_list)
+def assert_kw(key, **kwargs):
+    value = kwargs.get(key)
+    if value is None:
+        raise ValueError(f"{key} is not in kwargs")
+    return value
 
 
 def search_url(
@@ -56,7 +40,8 @@ def search_url(
     Returns:
         list[str]: 与论文网站相关的链接
     """
-    global num_pages
+    global start_page
+    _start_page = start_page
     url_search = search_engine_url
 
     # 获取网页的检索内容 html，并提取检索结果中与论文网站相关的链接
@@ -65,12 +50,12 @@ def search_url(
         page_content = get_page_content(url_search)
 
         urls_result += re.findall(search_url_regex, page_content)  # 正则表达式匹配 ieee 链接
-        if num_pages >= max_num_pages:
+        if _start_page >= max_num_pages:
             break
         else:
-            print(f"\r正在寻找有关 {search_method} 的链接，当前页码 {num_pages}~{num_pages+9}...", end="")
-            url_search = search_engine_url + f"&first={num_pages}"  # 翻页
-            num_pages += 10
+            print(f"\r正在寻找有关 {search_method} 的链接，当前页码 {_start_page}~{_start_page+9}...", end="")
+            url_search = search_engine_url + f"&first={_start_page}"  # 翻页
+            _start_page += 10
 
     # 判断是否有搜索结果
     urls_result = list(set(urls_result))  # 去重
@@ -82,184 +67,263 @@ def search_url(
     return urls_result
 
 
-# 包括一下的 search 都是检索论文作者用的，有其他用途可以自行更改
-def search_authors(
-        urls: [list[str], str],
-        query: str,
-        html_solver: Callable[[str], ReferenceData],
-        is_abbreviate_name=True
-):
-    """
-    通过论文网站链接检索论文作者信息
-    Args:
-        urls: 论文网站链接列表
-        query: 要搜索的关键词
-        html_solver: 对搜索结果进行解析的函数
-        is_abbreviate_name: 是否缩写作者姓名
+class WebsiteSearch(ABC):
+    def __init__(self, search_engine_url: str, query: str, **kwargs):
+        self.search_engine_url = search_engine_url
+        self.query = query
+        self.kwargs = kwargs
 
-    Returns:
-        bool: 是否找到标题与关键词完全匹配的论文
-    """
-    if isinstance(urls, str):
-        urls = [urls]
+        self.search_type = None     # 论文网站类型
+        self.url_regex = None       # 网站链接的正则表达式匹配 regex
 
-    # 访问论文网站链接，提取作者信息
-    for url in urls:
+    def search_urls(self):
+        urls = search_url(
+            self.search_engine_url, self.query,
+            search_url_regex=self.url_regex,
+            search_method=self.search_type
+        )
+        return urls
+
+    @staticmethod
+    def filter_urls(urls, titles, query):
+        """
+        筛选 query 和标题一致的 url，由于 query 时标题的匹配对象，故不需再返回 url 对应的标题
+        """
+        filtered_urls = []
+        for url, title in zip(urls, titles):
+            if query.lower() == title.lower():
+                filtered_urls.append(url)
+
+        if len(filtered_urls) == 0:
+            colored_print(f"从 {len(urls)} 个链接中未找到与关键词 {query} 完全匹配的链接", "red")
+        return filtered_urls
+
+    @staticmethod
+    @abstractmethod
+    def search_title(**kwargs) -> str:
+        pass
+
+    def search_and_filter_urls_by_query(self):
+        urls = self.search_urls()
+        titles = [
+            self.search_title(url=url)
+            for url in urls
+        ]
+        filtered_urls = self.filter_urls(urls, titles, self.query)
+        return filtered_urls
+
+    @staticmethod
+    @abstractmethod
+    def search_reference(url) -> Reference:
+        pass
+
+
+class ArxivSearch(WebsiteSearch):
+    def __init__(self, search_engine_url: str, query: str, **kwargs):
+        super().__init__(search_engine_url, query, **kwargs)
+        self.search_type = "arXiv"
+        self.url_regex = r"\"(https://arxiv\.org/abs/\d+?\.\d+?)\""
+
+    @staticmethod
+    def search_title(**kwargs):
+        """
+        提取页面中文章的标题
+        """
+        url = kwargs.get("url")
+        if url is not None:
+            html_content = get_page_content(url)
+            soup = BeautifulSoup(html_content, "html.parser")
+        else:
+            soup = assert_kw("soup", **kwargs)
+
+        title_html = soup.find("title").text.strip()
+        title = re.findall(r"\[\d+?\.\d+?] (.*)", title_html)[0]
+
+        return title
+
+    @staticmethod
+    def search_authors(**kwargs):
+        """
+        提取页面中文章的作者信息
+        """
+        soup = assert_kw("soup", **kwargs)
+
+        authors_html = soup.find("div", class_="authors")
+        authors = authors_html.findAll("a")
+        authors = [author.text.strip() for author in authors]
+
+        return authors
+
+    @staticmethod
+    def search_reference(url):
         # 获取网页 html 内容
-        page_content = get_page_content(url)
+        html_content = get_page_content(url)
+        soup = BeautifulSoup(html_content, "html.parser")
 
-        # 提取文章信息
-        reference_data = html_solver(page_content)
-        reference_data.url = url
-        title = reference_data.title
-        authors = reference_data.authors
-        print(f"在链接 {url} 中，文章标题为：{title}，提取出的作者信息如下：\n{authors}")
+        title = ArxivSearch.search_title(soup=soup)
+        authors = ArxivSearch.search_authors(soup=soup)
 
-        # 缩写作者姓名
-        if is_abbreviate_name:
-            abb_authors = [abbreviate_name(name) for name in authors]
-            if abb_authors is not None:
-                author_str = ""
-                if len(abb_authors) == 1:
-                    author_str = abb_authors[0]
-                elif len(abb_authors) >= 2:
-                    author_str = ", ".join(abb_authors[:-1]) + " and " + abb_authors[-1]
-                print(f"缩写后的作者信息如下：\n{author_str}")
-
-        if query.lower() == title.lower():
-            colored_print(f"文章标题与关键词 {query} 完全匹配！符合搜索条件", "green")
-            return True
-        elif query.lower() in title.lower():
-            colored_print(f"文章标题中包含关键词 {query}，符合搜索条件", "cyan")
-
-    return False
+        return Reference(
+            title=title,
+            authors=authors,
+        )
 
 
-urls_regex = {
-    'arXiv': r"\"(https://arxiv\.org/abs/\d+?\.\d+?)\"",
-    'IEEE': r"\"(https://ieeexplore\.ieee\.org/document/\d*)\"",
-    'ACM': r"\"(https://dl\.acm\.org/doi/\d+\.\d+/\d+\.\d+)\"",  # .../doi/abs/...也可以
-    'Semantics Scholar': r"\"(https://www\.semanticscholar\.org/paper/.+?)\"",
-}
+class IEEESearch(WebsiteSearch):
+    def __init__(self, search_engine_url: str, query: str, **kwargs):
+        super().__init__(search_engine_url, query, **kwargs)
+        self.search_type = "IEEE"
+        self.url_regex = r"\"(https://ieeexplore\.ieee\.org/document/\d*)\""
 
+    @staticmethod
+    def search_title(**kwargs):
+        """
+        提取页面中文章的标题
+        """
+        url = kwargs.get("url")
+        html_content = get_page_content(url) if url is not None else assert_kw("html_content", **kwargs)
 
-def arxiv_search(search_engine_url: str, query: str, **kwargs):
-    def html_solver(html_content):
-        # 提取页面中文章的标题
-        title = re.findall(r"<title>\[\d+?\.\d+?] (.*?)</title>", html_content)[0]
-
-        # 提取页面中整个作者信息
-        authors_html = re.findall(r"<div class=\"authors\">.*?</div>", html_content)[0]
-        # 提取每个作者名称
-        authors = re.findall(r"<a href=\".*?\">(.*?)</a>", authors_html)
-
-        return ReferenceData(title=title, authors=authors)
-
-    urls = search_url(
-        search_engine_url, query,
-        search_url_regex=urls_regex['arXiv'],
-        search_method="arXiv"
-    )
-    return search_authors(
-        urls, query,
-        html_solver=html_solver,
-        **kwargs
-    )
-
-
-def ieee_search(search_engine_url: str, query: str, **kwargs):
-    def html_solver(html_content):
         # 提取页面中文章的标题
         title = re.findall(r"<title>(.*?)(?: [|].*?)?</title>", html_content)[0]
+
+        return title
+
+    @staticmethod
+    def search_authors(**kwargs):
+        """
+        提取页面中文章的作者信息
+        """
+        html_content = assert_kw("html_content", **kwargs)
 
         # 提取页面中整个作者信息
         authors_html = re.findall(r"\"authors\":\[\{.*?}]", html_content)[0]
         # 提取每个作者名称
         authors = re.findall(r"\"name\":\"(.*?)\"", authors_html)
 
-        return ReferenceData(title=title, authors=authors)
+        return authors
 
-    urls = search_url(
-        search_engine_url, query,
-        search_url_regex=urls_regex['IEEE'],
-        search_method="IEEE"
-    )
-    return search_authors(
-        urls, query,
-        html_solver=html_solver,
-        **kwargs
-    )
+    @staticmethod
+    def search_reference(url):
+        # 获取网页 html 内容
+        html_content = get_page_content(url)
+
+        title = IEEESearch.search_title(html_content=html_content)
+        authors = IEEESearch.search_authors(html_content=html_content)
+
+        return Reference(
+            title=title,
+            authors=authors,
+        )
 
 
-def acm_search(search_engine_url: str, query: str, **kwargs):
-    def html_solver(html_content):
-        # 提取也页面中文章的标题
-        soup = BeautifulSoup(html_content, "html.parser")
+class ACMSearch(WebsiteSearch):
+    def __init__(self, search_engine_url: str, query: str, **kwargs):
+        super().__init__(search_engine_url, query, **kwargs)
+        self.search_type = "ACM"
+        self.url_regex = r"\"(https://dl\.acm\.org/doi/\d+\.\d+/\d+\.\d+)\""
+
+    @staticmethod
+    def search_title(**kwargs):
+        """
+        提取页面中文章的标题
+        """
+        url = kwargs.get("url")
+        html_content = get_page_content(url) if url is not None else assert_kw("html_content", **kwargs)
 
         # 提取页面中文章的标题
-        titles = soup.findAll("title")
-        print(titles[0].text)
-        title = re.findall(r"(.*?)(?: [|].*)+?", titles[0].text)[0]
+        title = re.findall(r"<title>(.*?)(?: [|].*?)?</title>", html_content)[0]
 
-        # 提取页面中所有作者名字
-        authors_family_name = soup.findAll("span", property="familyName")
-        authors_given_name = soup.findAll("span", property="givenName")
+        return title
+
+    @staticmethod
+    def search_authors(**kwargs):
+        """
+        提取页面中文章的作者信息
+        """
+        soup = assert_kw("soup", **kwargs)
+
+        authors_html = soup.find("span", class_="authors")
+        authors_family_name = authors_html.findAll("span", property="familyName")
+        authors_given_name = authors_html.findAll("span", property="givenName")
         authors = [
             f"{author_family_name.text} {author_given_name.text}"
             for author_family_name, author_given_name in zip(authors_family_name, authors_given_name)
         ]
         authors = list(set(authors))    # 去重
 
-        return ReferenceData(title=title, authors=authors)
+        return authors
 
-    urls = search_url(
-        search_engine_url, query,
-        search_url_regex=urls_regex['ACM'],
-        search_method="ACM",
-    )
-    return search_authors(
-        urls, query,
-        html_solver=html_solver,
-        **kwargs
-    )
-
-
-# TODO: semantics_scholar 检索速度太慢
-# noinspection SpellCheckingInspection
-def semanticsscholar_search(search_engine_url: str, query: str, **kwargs):
-    def html_solver(html_content):
-        # 提取也页面中文章的标题
+    @staticmethod
+    def search_reference(url):
+        # 获取网页 html 内容
+        html_content = get_page_content(url)
         soup = BeautifulSoup(html_content, "html.parser")
 
-        # 提取页面中文章的标题
-        titles = soup.findAll("title")
-        print(titles)
-        title = re.findall(r"(?:\[[^]]*?] )?(.*?)(?: [|].*?)?", titles[0].text)[0]
+        title = ACMSearch.search_title(html_content=html_content)
+        authors = ACMSearch.search_authors(soup=soup)
 
-        # 提取页面中所有作者名字
-        authors = soup.findAll("meta", name="citation author")
-        print(authors)
+        return Reference(
+            title=title,
+            authors=authors,
+        )
+
+
+class SemanticsScholarSearch(WebsiteSearch):
+    def __init__(self, search_engine_url: str, query: str, **kwargs):
+        super().__init__(search_engine_url, query, **kwargs)
+        self.search_type = "Semantics Scholar"
+        self.url_regex = r"\"(https://www\.semanticscholar\.org/paper/.+?)\""
+
+    @staticmethod
+    def search_title(**kwargs):
+        """
+        提取页面中文章的标题
+        """
+        if "soup" not in kwargs:
+            raise ValueError("soup is not in kwargs")
+        soup = kwargs["soup"]
+
+        # 提取页面中文章的标题
+        title_html = soup.find("title").text.strip()
+        title = re.findall(r"(?:\[[^]]*?] )?(.*?)(?: [|].*?)?", title_html)[0]
+
+        return title
+
+    @staticmethod
+    def search_authors(**kwargs):
+        """
+        提取页面中文章的作者信息
+        """
+        if "soup" not in kwargs:
+            raise ValueError("soup is not in kwargs")
+        soup = kwargs["soup"]
+
+        authors_html = soup.findAll("meta", name="citation author")
+        authors = [author.get("content") for author in authors_html]
         authors = list(set(authors))    # 去重
 
-        return ReferenceData(title=title, authors=authors)
+        return authors
 
-    urls = search_url(
-        search_engine_url, query,
-        search_url_regex=urls_regex['Semantics Scholar'],
-        search_method="Semantics Scholar"
-    )
-    return search_authors(
-        urls, query,
-        html_solver=html_solver,
-        **kwargs
-    )
+    @staticmethod
+    def search_reference(url):
+        # 获取网页 html 内容
+        html_content = get_page_content(url)
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        title = SemanticsScholarSearch.search_title(soup=soup)
+        authors = SemanticsScholarSearch.search_authors(soup=soup)
+
+        return Reference(
+            title=title,
+            authors=authors,
+        )
 
 
 search_method_map = {
-    "arXiv": arxiv_search,
-    "IEEE": ieee_search,
-    "ACM": acm_search,
-    "Semantics Scholar": semanticsscholar_search,
+    "arXiv": ArxivSearch,
+    "IEEE": IEEESearch,
+    "ACM": ACMSearch,
+    "Semantics Scholar": SemanticsScholarSearch,
 }
 
 
@@ -271,12 +335,11 @@ def search_urls_by_title(
     通过论文标题（或关键词）搜索论文网站链接
     Args:
         titles: 论文标题（或关键词）列表
-        search_types: 搜索方式，可以选择 arxiv, ieee, acm 等
+        search_types: 搜索方式，可以选择 arXiv, IEEE, ACM 等
 
     Returns:
         dict: 搜索结果字典，键为搜索方式，值为搜索结果列表
     """
-    global num_pages
     if not isinstance(search_types, tuple) and not isinstance(search_types, list):
         search_types = (search_types,)
     search_types = list(search_types)
@@ -292,11 +355,10 @@ def search_urls_by_title(
         print(f"\n查询网页链接：{search_engine_url}")
 
         for search_type in search_types:
-            num_pages = 5
 
             method_urls_map[search_type] = search_url(
                 search_engine_url, cur_query,
-                search_url_regex=urls_regex[search_type],
+                search_url_regex=r"\"(https://www\.semanticscholar\.org/paper/.+?)\"",
                 search_method=search_type,
             )
 
@@ -312,10 +374,9 @@ def search_authors_by_title(
     通过论文标题（或关键词）搜索论文作者信息
     Args:
         titles: 论文标题（或关键词）列表
-        search_types: 搜索方式，可以选择 arxiv_search, ieee_search, acm_search 等
+        search_types: 搜索方式，可以选择 arXiv, IEEE, ACM 等
         is_abbreviate_name: 是否缩写作者姓名
     """
-    global num_pages
     if not isinstance(search_types, tuple) and not isinstance(search_types, list):
         search_types = (search_types,)
     search_types = list(search_types)
@@ -326,28 +387,67 @@ def search_authors_by_title(
     for title in titles:
         # 关键词网址 url
         cur_query = title.replace(" ", "+")
-        url_origin = f"https://{search_engine}/{action}?{search_param_name}={cur_query}"   # 翻页 &first=6&FORM=PERE
-        print(f"\n查询网页链接：{url_origin}")
+        search_engine_url = f"https://{search_engine}/{action}?{search_param_name}={cur_query}"   # 翻页 &first=6&FORM=PERE
+        print(f"\n查询网页链接：{search_engine_url}")
 
         # 在 arxiv 中找到作者信息
         any_complete_match_result = False
         for search_type in search_types:
-            search_method = search_method_map[search_type]
-            num_pages = 5
+            search_method: WebsiteSearch = search_method_map[search_type](search_engine_url, title)
+            urls = search_method.search_and_filter_urls_by_query()
+            if len(urls) == 0:
+                continue
 
-            any_complete_match_result |= search_method(url_origin, title, is_abbreviate_name=is_abbreviate_name)
-            if any_complete_match_result:
+            reference = search_method.search_reference(urls[0])
+            if is_abbreviate_name:
+                reference.abbreviate_authors()
+
+            if reference.authors is not None:
                 break
 
         if not any_complete_match_result:
             colored_print("无法找到完全匹配关键词的文章作者信息！", "red")
 
 
+def search_reference(
+        titles: [str, list[str]],
+        search_types: (tuple, list,) = ("arXiv", "IEEE", "ACM"),
+):
+    """
+    通过论文标题（或关键词）搜索论文引用信息
+    Args:
+        titles: 论文标题（或关键词）列表
+        search_types: 搜索方式，可以选择 arXiv, IEEE, ACM 等
+    """
+    if not isinstance(search_types, tuple) and not isinstance(search_types, list):
+        search_types = (search_types,)
+    search_types = list(search_types)
+    if isinstance(titles, str):
+        titles = [titles]
+
+    # 查询论文作者信息，并缩写
+    for title in titles:
+        # 关键词网址 url
+        cur_query = title.replace(" ", "+")
+        search_engine_url = f"https://{search_engine}/{action}?{search_param_name}={cur_query}"   # 翻页 &first=6&FORM=PERE
+        print(f"\n查询网页链接：{search_engine_url}")
+
+        # 在 arxiv 中找到作者信息
+        references = []
+        for search_type in search_types:
+            search_method: WebsiteSearch = search_method_map[search_type](search_engine_url, title)
+            urls = search_method.search_and_filter_urls_by_query()
+            reference = search_method.search_reference(urls[0])
+            references.append(reference)
+
+        return references
+
+
 if __name__ == '__main__':
     max_num_pages = 20
     _query = "Attention is all you need"
 
-    search_authors_by_title(_query, "arXiv")
+    search_authors_by_title(_query, search_types=["arXiv", "IEEE"])
 
     # 所有要搜索的关键词
     # queries = [
