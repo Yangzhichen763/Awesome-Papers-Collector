@@ -147,10 +147,11 @@ class Overview(MDClass):
                 )
             return md
 
+        arxiv_code = re.findall(r"/(\d+?\.\d+)", self.arxiv_url)[0]
         shields = [
-            make_shield_md(self.arxiv_url, header="arXiv", body="Paper", color="red"),
-            make_shield_md(self.html_url, header="html", body="HTML", color="yellow"),
-            make_shield_md(self.project_url, header="code", body="Project Page", color="darkgreen")
+            make_shield_md(self.arxiv_url, header="arXiv", body=arxiv_code, color="red"),
+            make_shield_md(self.html_url, header="HTML", body="Page", color="yellow"),
+            make_shield_md(self.project_url, header="Project", body="Page", color="green")
         ]
         for shield in shields:
             if shield == "":
