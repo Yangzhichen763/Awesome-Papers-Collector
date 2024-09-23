@@ -355,12 +355,8 @@ def search_urls_by_title(
         print(f"\n查询网页链接：{search_engine_url}")
 
         for search_type in search_types:
-
-            method_urls_map[search_type] = search_url(
-                search_engine_url, cur_query,
-                search_url_regex=r"\"(https://www\.semanticscholar\.org/paper/.+?)\"",
-                search_method=search_type,
-            )
+            search_method: WebsiteSearch = search_method_map[search_type](search_engine_url, title)
+            method_urls_map[search_type] = search_method.search_urls()
 
     return method_urls_map
 
