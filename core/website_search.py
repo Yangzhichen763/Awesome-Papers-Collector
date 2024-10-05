@@ -329,13 +329,15 @@ search_method_map = {
 
 def search_urls_by_title(
         titles: [str, list[str]],
-        search_types: (tuple, list,) = ("arXiv", "IEEE", "ACM")
+        search_types: (tuple, list,) = ("arXiv", "IEEE", "ACM"),
+        title_filter: bool = True
 ):
     """
     通过论文标题（或关键词）搜索论文网站链接
     Args:
         titles: 论文标题（或关键词）列表
         search_types: 搜索方式，可以选择 arXiv, IEEE, ACM 等
+        title_filter: 是否过滤标题，若为 True，则只返回标题完全匹配的链接，否则返回所有链接
 
     Returns:
         dict: 搜索结果字典，键为搜索方式，值为搜索结果列表
@@ -356,7 +358,10 @@ def search_urls_by_title(
 
         for search_type in search_types:
             search_method: WebsiteSearch = search_method_map[search_type](search_engine_url, title)
-            method_urls_map[search_type] = search_method.search_urls()
+            if title_filter:
+                method_urls_map[search_type] = search_method.search_and_filter_urls_by_query()
+            else:
+                method_urls_map[search_type] = search_method.search_urls()
 
     return method_urls_map
 
