@@ -91,11 +91,14 @@ class WebsiteSearch(ABC):
         """
         filtered_urls = []
         for url, title in zip(urls, titles):
+            print(f"正在检查 {url} 对应的标题 {title.lower()} 是否与关键词 {query.lower()} 完全匹配...")
             if query.lower() == title.lower():
                 filtered_urls.append(url)
 
         if len(filtered_urls) == 0:
             colored_print(f"从 {len(urls)} 个链接中未找到与关键词 {query} 完全匹配的链接", "red")
+        else:
+            colored_print(f"成功筛选出 {len(filtered_urls)} 个与关键词 {query} 完全匹配的链接:\n{filtered_urls}", "green")
         return filtered_urls
 
     @staticmethod
@@ -340,7 +343,8 @@ def search_urls_by_title(
         title_filter: 是否过滤标题，若为 True，则只返回标题完全匹配的链接，否则返回所有链接
 
     Returns:
-        dict: 搜索结果字典，键为搜索方式，值为搜索结果列表
+        dict: 如果输入 query 为单个字符串，则返回一个搜索结果字典，键为搜索方式，值为搜索结果列表
+              否则，返回一个列表，列表中每个元素为一个搜索结果字典
     """
     if not isinstance(search_types, tuple) and not isinstance(search_types, list):
         search_types = (search_types,)
@@ -349,8 +353,10 @@ def search_urls_by_title(
         titles = [titles]
 
     # 查询论文作者信息，并缩写
-    method_urls_map = {}
+    urls = []
     for title in titles:
+        method_urls_map = {}
+
         # 关键词网址 url
         cur_query = title.replace(" ", "+")
         search_engine_url = f"https://{search_engine}/{action}?{search_param_name}={cur_query}"   # 翻页 &first=6&FORM=PERE
@@ -363,7 +369,9 @@ def search_urls_by_title(
             else:
                 method_urls_map[search_type] = search_method.search_urls()
 
-    return method_urls_map
+        urls.append(method_urls_map)
+
+    return urls if len(titles) > 1 else urls[0]
 
 
 def search_authors_by_title(
