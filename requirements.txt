@@ -1,2 +1,5 @@
 requests
 beautifulsoup4
+
+# quick search - pinyin
+pypinyin
