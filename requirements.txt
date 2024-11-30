@@ -1,5 +1,12 @@
 requests
 beautifulsoup4
 
+# display progress bar for downloading papers
+tqdm
+
 # quick search - pinyin
 pypinyin
+
+# paper search
+openreview-py
+lxml

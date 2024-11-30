@@ -9,7 +9,7 @@
 - 生成文章 md 文档：输入论文的 arXiv 链接，爬取文章摘要并生成 md 文档
 - 敬请期待
 
-# Preparation
+# 环境配置
 克隆本仓库到本地
 ```bash
 git clone https://github.com/Yangzhichen763/ReferenceEditor.git
@@ -21,9 +21,44 @@ pip install -r requirements.txt
 ```
 ---
 
-# Usage
+# 使用方法
+## 自动生成 Awesome 文章
+
+---
+通过关键词爬取文章，并生成 Awesome md 文件
+```python
+from core.awesome import awesome_search
+
+# 要搜索的关键词
+keyword = "Anything"
+
+# 爬取文章并生成 Awesome md 文件
+awesome_search.search(keyword)
+```
+目前支持的期刊和会议都在 `core/awesome/general.py` 文件下，可以支持检索的期刊和会议网站代码在 `core/awesome/pubs` 文件夹下。
+任务列表如下：
+- [x] 支持在 IEEE Xplore 中检索 IEEE 相关期刊和会议的论文
+- [x] 支持在 ACM Digital Library 中检索 ACM 相关期刊和会议的论文
+- [x] 支持在 OpenReview 中检索相关论文
+- [x] 支持在 arXiv 中检索相关论文
+- [x] 支持在 AAAI 中检索 AAAI 相关会议的论文
+- [x] 支持在 NeurIPS 中检索 NeurIPS 相关会议的论文
+- [ ] 支持在 Springer 中检索相关论文
+
+生成的 Awesome md 文件部分展示结果如下：
+
+|           Awesome_Anything.md 文件的部分展示结果           |
+|:-------------------------------------------------:|
+| ![pictures\example_1.png](pictures\example_1.png) |
+|                        ...                        |
+| ![pictures\example_2.png](pictures\example_2.png) |
+|                        ...                        |
+| ![pictures\example_3.png](pictures\example_3.png) |
+
+# 其他功能
 ## 爬取文章作者
-使用方法非常简单，如下：
+
+---
 ### 爬取单篇文章的作者
 ``` python
 from core import website_search
@@ -49,6 +84,8 @@ website_search.search_authors_by_titles(titles)
 ```
 
 ## 生成文章 md 文档
+
+---
 使用方法也非常简单，如下：
 ### 根据 arXiv 链接生成文章 md 文档
 ``` python
