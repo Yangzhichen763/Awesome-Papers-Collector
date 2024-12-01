@@ -24,8 +24,6 @@ pip install -r requirements.txt
 
 # 使用方法
 ## 自动生成 Awesome 列表
-
----
 通过关键词爬取文章，并生成 Awesome md 文件
 ```python
 from core.awesome import awesome_search
@@ -51,11 +49,11 @@ awesome_search.search(keyword)
 
 |           Awesome_Anything.md 文件的部分展示结果           |
 |:-------------------------------------------------:|
-| ![pictures\example_1.png](pictures\example_1.png) |
+| ![pictures\example_1.png](pictures/example_1.png) |
 |                        ...                        |
-| ![pictures\example_2.png](pictures\example_2.png) |
+| ![pictures\example_2.png](pictures/example_2.png) |
 |                        ...                        |
-| ![pictures\example_3.png](pictures\example_3.png) |
+| ![pictures\example_3.png](pictures/example_3.png) |
 
 # 其他功能
 ## 爬取文章作者
@@ -86,8 +84,6 @@ website_search.search_authors_by_title(titles)
 ```
 
 ## 生成文章 md 文档
-
----
 ### 根据 arXiv 链接生成文章 md 文档
 ```python
 from core.arxiv_crawler import parse_arxiv_html
