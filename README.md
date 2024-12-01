@@ -1,7 +1,7 @@
 <div align="center">
-<h1>Reference Editor</h1>
+<h1>Awesome Paper Collector</h1>
 
-<a href="https://github.com/Yangzhichen763/ReferenceEditor"><img src='https://img.shields.io/badge/code-Reference Editor-darkgreen' alt='Project Page'></a>
+<a href="https://github.com/Yangzhichen763/Awesome-Paper-Collector"><img src='https://img.shields.io/badge/code-Awesome Paper Collector-darkgreen' alt='Project Page'></a>
 </div>
 
 这个项目目前仅实现了简单的功能，其中包括
@@ -13,7 +13,7 @@
 # 环境配置
 克隆本仓库到本地
 ```bash
-git clone https://github.com/Yangzhichen763/ReferenceEditor.git
+git clone https://github.com/Yangzhichen763/Awesome-Papers-Collector.git
 cd ReferenceEditor
 ```
 安装依赖
@@ -46,15 +46,16 @@ awesome_search.search(keyword)
 - [ ] 支持在 Springer 中检索相关论文
 
 生成的 Awesome md 文件部分展示结果如下：
+<center>
 
-|           Awesome_Anything.md 文件的部分展示结果           |
-|:-------------------------------------------------:|
-| ![pictures\example_1.png](pictures/example_1.png) |
-|                        ...                        |
-| ![pictures\example_2.png](pictures/example_2.png) |
-|                        ...                        |
-| ![pictures\example_3.png](pictures/example_3.png) |
+![pictures\example_1.png](pictures/example_1.png)
+...
 
+![pictures\example_2.png](pictures/example_2.png)
+...
+
+![pictures\example_3.png](pictures/example_3.png)
+</center>
 # 其他功能
 ## 爬取文章作者
 
