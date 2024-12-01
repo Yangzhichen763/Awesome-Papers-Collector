@@ -56,7 +56,9 @@ awesome_search.search(keyword)
 
 ![pictures\example_3.png](pictures/example_3.png)
 </center>
+
 # 其他功能
+
 ## 爬取文章作者
 
 ---
