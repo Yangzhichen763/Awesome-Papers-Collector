@@ -5,8 +5,9 @@
 </div>
 
 这个项目目前仅实现了简单的功能，其中包括
-- 爬取文章作者：通过单篇或多篇文章名，爬取文章作者（可选缩写作者名）
-- 生成文章 md 文档：输入论文的 arXiv 链接，爬取文章摘要并生成 md 文档
+- **自动生成 Awesome 列表**：使用关键词爬取文章，并生成 Awesome md 文件
+- **爬取文章作者**：通过单篇或多篇文章名，爬取文章作者（可选缩写作者名）
+- **生成文章 md 文档**：输入论文的 arXiv 链接，爬取文章摘要和关键图片并生成 md 文档
 - 敬请期待
 
 # 环境配置
@@ -22,7 +23,7 @@ pip install -r requirements.txt
 ---
 
 # 使用方法
-## 自动生成 Awesome 文章
+## 自动生成 Awesome 列表
 
 ---
 通过关键词爬取文章，并生成 Awesome md 文件
@@ -43,6 +44,7 @@ awesome_search.search(keyword)
 - [x] 支持在 arXiv 中检索相关论文
 - [x] 支持在 AAAI 中检索 AAAI 相关会议的论文
 - [x] 支持在 NeurIPS 中检索 NeurIPS 相关会议的论文
+- [ ] 支持在 ECCV 中检索 ECCV 相关会议的论文
 - [ ] 支持在 Springer 中检索相关论文
 
 生成的 Awesome md 文件部分展示结果如下：
@@ -60,7 +62,7 @@ awesome_search.search(keyword)
 
 ---
 ### 爬取单篇文章的作者
-``` python
+```python
 from core import website_search
 
 # 文章标题，或者能在搜索引擎中搜索到的关键词
@@ -73,22 +75,21 @@ website_search.search_authors_by_title(title)
 - 可以通过更改 `reference_do.search_engine` 来切换搜索引擎
 - 可以通过修改 `reference_do.num_pages` 来调整搜索结果数
 ### 爬取多篇文章的作者
-``` python
+```python
 from core import website_search
 
 # 文章标题列表，或者能在搜索引擎中搜索到的关键词列表
 titles = ["Attention is all you need", "Latent Diffusion Model"]
 
 # 检索文章作者
-website_search.search_authors_by_titles(titles)
+website_search.search_authors_by_title(titles)
 ```
 
 ## 生成文章 md 文档
 
 ---
-使用方法也非常简单，如下：
 ### 根据 arXiv 链接生成文章 md 文档
-``` python
+```python
 from core.arxiv_crawler import parse_arxiv_html
 
 # 要生成的文章 arXiv 链接
@@ -99,9 +100,9 @@ overview = parse_arxiv_html(url)
 overview.make()
 ```
 ### 根据关键词生成文章 md 文档
-``` python
-from core.arxiv_crawler import search_arxiv_by_keyword
-from core.html_requester import get_page_content
+```python
+from core.arxiv_crawler import parse_arxiv_html
+from core.website_search import search_urls_by_title
 
 # 文章关键词
 query = 'Attention is all you need'
