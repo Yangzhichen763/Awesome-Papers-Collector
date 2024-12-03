@@ -97,7 +97,7 @@ def neurips_paper_search(
 
         # 标题
         title_elem = paper_elem.find('a', title='paper title')
-        paper['title'] = title_elem.text.strip()[1:-1]
+        paper['title'] = remove_quotes(title_elem.text)
         html_link = normalize_link(title_elem['href'])
         paper['html'] = f"https://proceedings.neurips.cc/{html_link}"
 

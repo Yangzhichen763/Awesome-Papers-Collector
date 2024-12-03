@@ -99,7 +99,7 @@ def aaai_paper_search(
                     paper = {}
 
                     title_elem = paper_elem.find('h5').find('a')
-                    paper['title'] = title_elem.text[1:-1].strip()
+                    paper['title'] = remove_quotes(title_elem.text).strip()
                     # 比如 https://aaai.org/papers/00003-learning-unseen-emotions-from-gestures-via-semantically-conditioned-zero-shot-perception-with-adversarial-autoencoders/">Learning Unseen Emotions from Gestures via Semantically-Conditioned Zero-Shot Perception with Adversarial Autoencoders
                     paper['html_link'] = title_elem['href']
 
@@ -141,7 +141,7 @@ def aaai_paper_search(
 
                     abstract = get_section_text('Abstract:')
                     if abstract:
-                        paper['abstract'] = abstract[1:-1].strip()
+                        paper['abstract'] = remove_quotes(abstract).strip()
 
                     doi = get_section_text('DOI:')
                     if doi:
@@ -156,7 +156,7 @@ def aaai_paper_search(
                     paper = {}
 
                     title_elem = paper_elem.find('h3').find('a')
-                    paper['title'] = title_elem.text[1:-1].strip()
+                    paper['title'] = remove_quotes(title_elem.text).strip()
                     # 比如 https://ojs.aaai.org/index.php/AAAI/article/view/27749
                     paper['html_link'] = title_elem['href']
 
@@ -192,7 +192,7 @@ def aaai_paper_search(
 
                     doi = get_main_section_text('item doi')
                     if doi:
-                        paper['doi'] = doi[1:-1].strip().replace('https://doi.org/', '')
+                        paper['doi'] = remove_quotes(doi).strip().replace('https://doi.org/', '')
 
                     _keywords = get_main_section_text('item keywords')
                     if _keywords:
@@ -200,7 +200,7 @@ def aaai_paper_search(
 
                     abstract = get_main_section_text('item keywords')
                     if abstract:
-                        paper['abstract'] = abstract[1:-1].strip()
+                        paper['abstract'] = remove_quotes(abstract).strip()
 
                     entry_details_elem = paper_file_soup.find('div', class_='entry_details')
 

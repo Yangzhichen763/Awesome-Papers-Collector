@@ -133,6 +133,27 @@ def normalize_link(link: str) -> str:
     return link
 
 
+def remove_quotes(text: str) -> str:
+    """
+    移除文本中开头和结尾的引号
+    Args:
+        text: 文本
+
+    Returns:
+        str: 移除引号后的文本
+    """
+    text = text.strip()
+    any_start_quote = text.startswith('"') or text.startswith("'")
+    any_end_quote = text.endswith('"') or text.endswith("'")
+    if any_start_quote and any_end_quote:
+        text = text[1:-1]
+    elif any_start_quote:
+        text = text[1:]
+    elif any_end_quote:
+        text = text[:-1]
+    return text
+
+
 def match_paper(keywords: list[str], paper: dict, mode: Mode = Mode.OR):
     """
     根据关键词匹配论文
