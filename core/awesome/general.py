@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import enum
 from enum import Enum
 from typing import Optional
+import re
 
 from tqdm import tqdm
 
@@ -152,6 +153,55 @@ def remove_quotes(text: str) -> str:
     elif any_end_quote:
         text = text[:-1]
     return text
+
+
+def find_code_or_project_page_in_abstract(abstract: str):
+    """
+    在论文摘要中查找代码或项目主页链接
+
+    Args:
+        abstract: 论文摘要
+
+    Returns:
+        dict: 论文信息字典，包括以下字段：
+            code_link: 代码链接
+            project_page_link: 项目主页链接
+    """
+    paper = {}
+
+    # 代码链接一般都是 Github 开头的
+    code_links: list = re.findall(r'https?://(?:www\.)?github\.com/[^/]+?/[^., ]*', abstract)
+    if code_links and len(code_links) >= 1:
+        paper['code_link'] = code_links[0]
+
+    # 除了代码链接外，论文中可能还会有项目主页链接
+    # 如果项目主页是再 Github 上的，则链接很有可能是 https?://(?:www\.)?[^/]+\.github\.io/[^., ]* 形式的
+    project_links: list = re.findall(r'https?://(?:www\.)?[^/]+?\.[^/]+?/[^., ]+', abstract)
+    if project_links and len(project_links) >= 1:
+        if code_links and len(code_links) >= 1:
+            for project_link in project_links:
+                if project_link == code_links[0]:
+                    continue
+                paper['project_page_link'] = project_link
+                break
+        else:
+            paper['project_page_link'] = project_links[0]
+
+    return paper
+
+
+def update_paper_with_code_and_project_page(paper: dict):
+    """
+    根据论文摘要查找代码和项目主页链接，并更新论文信息字典
+    会添加的包括以下字段：
+        code_link: 代码链接
+        project_page_link: 项目主页链接
+
+    Args:
+        paper: 论文信息字典
+    """
+    if 'abstract' in paper:
+        paper.update(find_code_or_project_page_in_abstract(paper['abstract']))
 
 
 def match_paper(keywords: list[str], paper: dict, mode: Mode = Mode.OR):

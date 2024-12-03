@@ -202,14 +202,15 @@ def aaai_paper_search(
                     if abstract:
                         paper['abstract'] = remove_quotes(abstract).strip()
 
+
                     entry_details_elem = paper_file_soup.find('div', class_='entry_details')
 
-                    published_elem = entry_content_elem.find('div', class_='item published')
+                    published_elem = entry_details_elem.find('div', class_='item published')
                     published_elem = published_elem.find('div', class_='value')
                     published = published_elem.text.strip()
                     paper['published_date'] = published
 
-                    issue_elem = entry_content_elem.find('div', class_='item issue')
+                    issue_elem = entry_details_elem.find('div', class_='item issue')
                     issue_elems = issue_elem.find_all('section', class_='sub_item')
                     for issue_elem in issue_elems:
                         if issue_elem.find('h2', class_='label', string='Issue'):
@@ -220,6 +221,7 @@ def aaai_paper_search(
                             track = issue_elem.find('div', class_='value').text.strip()
                             paper['track'] = track
 
+                    update_paper_with_code_and_project_page(paper)
                     match_paper(keywords, paper, mode)
             else:
                 raise ValueError('Unknown version')

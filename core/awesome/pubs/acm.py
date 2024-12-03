@@ -63,6 +63,8 @@ def acm_paper_search(
         response = get_html(url, params, headers)
         if response is not None:
             soup = BeautifulSoup(response.text, 'html.parser')
+            print(soup.prettify())
+            exit(0)
 
             # 搜索论文条目数量
             number_results = int(soup.find('span', class_='result__count').text
@@ -123,9 +125,10 @@ def acm_paper_search(
                         attach_holder_elem = footer_elem.find('li', class_='attach-holder')
                         if attach_holder_elem:
                             tooltip_elem = attach_holder_elem.find('div', class_='tooltip__body')
-                            supplementary_elem = tooltip_elem.find('a')
+                            supplementary_elem = tooltip_elem.findall('a')
                             if supplementary_elem:
-                                paper['supplementary_link'] = f"https://dl.acm.org/{normalize_link(supplementary_elem['href'])}"
+                                paper['supplementary_links'] = [f"https://dl.acm.org/{normalize_link(elem['href'])}" for elem in supplementary_elem]
+                                paper['supplementary_link'] = paper['supplementary_links'][0]
 
                         # 论文 pdf 链接
                         pdf_elem = footer_elem.find('a', class_='get-access')

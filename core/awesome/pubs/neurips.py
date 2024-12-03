@@ -91,6 +91,8 @@ def neurips_paper_search(
                 abstract = abstract_elem.find_next('p').find_next('p').text.strip()
                 paper['abstract'] = abstract
 
+            update_paper_with_code_and_project_page(paper)
+
     # 通过 html 获取论文信息
     def get_paper_info(paper_elem):
         paper = {}

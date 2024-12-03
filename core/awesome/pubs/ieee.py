@@ -173,6 +173,9 @@ def ieee_search(
     all_papers = []
     ieee_papers = ieee_paper_search(keyword, start_year, end_year)
     for ieee_paper in ieee_papers:
+        # 更新论文的代码和项目链接
+        update_paper_with_code_and_project_page(ieee_paper)
+
         # 跳过没有出版社的论文
         if ieee_paper.get('publicationTitle') is None:
             continue

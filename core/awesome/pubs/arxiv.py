@@ -65,13 +65,7 @@ def arxiv_paper_search(
             _paper['primary_category'] = paper_elem.find('arxiv:primary_category')['term']
             _paper['categories'] = [category['term'] for category in paper_elem.find_all('category')]
 
-            code_links: list = re.findall(r'https?://(?:www\.)?github\.com/[^/]+/[^., ]*', _paper['abstract'])
-            if code_links and len(code_links) > 1:
-                _paper['code_link'] = code_links[0]
-
-            project_links: list = re.findall(r'https?://(?:www\.)?[^/]+\.github\.io/[^., ]*', _paper['abstract'])
-            if project_links and len(project_links) > 1:
-                _paper['project_page_link'] = project_links[0]
+            update_paper_with_code_and_project_page(paper)
 
             doi_link_elem = paper_elem.find('link', title='doi')
             if doi_link_elem:

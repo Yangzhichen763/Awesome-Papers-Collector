@@ -285,6 +285,8 @@ def extract_submission_info(submission) -> dict:
             print_(f"提取论文信息失败，获取到的信息：{submission}\n错误信息：{e}")
             submission_info = None
 
+    # 更新论文的代码和项目链接
+    update_paper_with_code_and_project_page(submission_info)
     return submission_info
 
 
