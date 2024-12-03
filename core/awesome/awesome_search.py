@@ -57,10 +57,24 @@ def save_to_csv(csv_file_path: str, all_papers: list[dict]):
 # 'pdf_link': PDF 链接
 # 'supplementary_link': 附件链接
 # 'arxiv_link': arXiv 链接
+# 'code_link': 代码链接
+# 'project_page_link': 项目页面链接
 # 'doi': 论文 DOI
 # 'publication_year': 出版年份
 # 'journal': 期刊名称
 # 'conference': 会议名称
+"""
+![Static Badge](https://img.shields.io/badge/CCF_A-crimson)
+![Static Badge](https://img.shields.io/badge/CCF_B-blue)
+![Static Badge](https://img.shields.io/badge/CCF_C-seagreen)
+
+<img src='https://img.shields.io/badge/Code-Github-goldenrod' alt='Paper PDF Link'>
+<img src='https://img.shields.io/badge/Paper-PDF-red' alt='Paper PDF Link'>
+<img src='https://img.shields.io/badge/arXiv-1234.12345-limegreen' alt='Paper PDF Link'>
+<img src='https://img.shields.io/badge/Project-Page-mediumslateblue' alt='Paper PDF Link'>
+<img src='https://img.shields.io/badge/DOI-Link-deepskyblue' alt='Paper PDF Link'>
+<img src='https://img.shields.io/badge/Supp-Link-lightgrey' alt='Paper PDF Link'>
+"""
 def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_papers: list[dict] = None,
                title_md: str = None):
     # 按照会议或期刊名称排序
@@ -85,7 +99,7 @@ def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_pa
         awesome_title = title_md or keyword
         f.write(f'# Awesome {awesome_title}\n'
                 f'[![Awesome](https://cdn.jsdelivr.net/gh/sindresorhus/awesome/media/badge.svg)](https://github.com/sindresorhus/awesome)\n'
-                f'[![Awesome {awesome_title}](https://img.shields.io/badge/Awesome-{awesome_title}-orchid)](https://github.com/topics/awesome)\n\n')
+                f'[![Awesome {awesome_title}](https://img.shields.io/badge/Awesome-{awesome_title.replace(" ", "_")}-orchid)](https://github.com/topics/awesome)\n\n')
         for year in years:
             f.write(f"### {year}\n")
             f.write(f"{len(papers_by_year[year])} papers received.\n\n")
@@ -105,18 +119,31 @@ def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_pa
 
                 # Links
                 links_list = []
+                if paper.get('code_link'):
+                    code_link = paper['code_link']
+                    links_list.append(
+                        f"<a href='{code_link}'><img src='https://img.shields.io/badge/Code-Github-goldenrod' alt='{code_link}'></a> ")
                 if paper.get('pdf_link'):
                     pdf_link = paper['pdf_link']
-                    links_list.append(f"<a href='{pdf_link}'><img src='https://img.shields.io/badge/Paper-PDF-red' alt='Paper PDF Link'></a> ")
+                    links_list.append(f"<a href='{pdf_link}'><img src='https://img.shields.io/badge/Paper-PDF-red' alt='{pdf_link}'></a> ")
                 if paper.get('arxiv_link'):
-                    arxiv_code = re.search(r".*?(\d{4}.\d{5})", paper['arxiv_link']).group(1)
+                    arxiv_link = paper['arxiv_link']
+                    try:
+                        arxiv_code = re.search(r".*?(\d{4}.\d{4,5}(?:v\d+)?)", arxiv_link).group(1)
+                    except AttributeError:
+                        print_(f"无法解析 arXiv 链接 {arxiv_link}")
+                        arxiv_code = "?"
                     links_list.append(
-                        f"<a href='{paper['arxiv_link']}'><img src='https://img.shields.io/badge/arXiv-{arxiv_code}-limegreen' alt='{arxiv_code}'></a> ")
+                        f"<a href='{arxiv_link}'><img src='https://img.shields.io/badge/arXiv-{arxiv_code}-limegreen' alt='{arxiv_link}'></a> ")
+                if paper.get('project_page_link'):
+                    project_page_link = paper['project_page_link']
+                    links_list.append(
+                        f"<a href='{project_page_link}'><img src='https://img.shields.io/badge/Project-Page-mediumslateblue' alt='{project_page_link}'></a> ")
                 if paper.get('doi'):
                     doi = normalize_link(paper['doi'])
                     doi_link = f"https://doi.org/{doi}"
                     links_list.append(
-                        f"<a href='{doi_link}'><img src='https://img.shields.io/badge/DOI-Link-cornflowerblue' alt='{doi}'></a> ")
+                        f"<a href='{doi_link}'><img src='https://img.shields.io/badge/DOI-Link-deepskyblue' alt='{doi}'></a> ")
                 if paper.get('supplementary_link'):
                     # 后缀一般是四个字符内的
                     if "." not in paper['supplementary_link'][-5:]:
@@ -160,13 +187,18 @@ def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_pa
                 pdf_link = paper['pdf_link']
                 links_list.append(f"<a href='{pdf_link}'><img src='https://img.shields.io/badge/Paper-PDF-red' alt='Paper PDF Link'></a> ")
             if paper.get('arxiv_link'):
+                arxiv_link = paper['arxiv_link']
                 try:
-                    arxiv_code = re.search(r".*?(\d{4}.\d{4,5}(?:v\d+)?)", paper['arxiv_link']).group(1)
+                    arxiv_code = re.search(r".*?(\d{4}.\d{4,5}(?:v\d+)?)", arxiv_link).group(1)
                 except AttributeError:
-                    print_(f"无法解析 arXiv 链接 {paper['arxiv_link']}")
+                    print_(f"无法解析 arXiv 链接 {arxiv_link}")
                     arxiv_code = "?"
                 links_list.append(
                     f"<a href='{paper['arxiv_link']}'><img src='https://img.shields.io/badge/arXiv-{arxiv_code}-limegreen' alt='{arxiv_code}'></a> ")
+            if paper.get('project_link'):
+                project_link = paper['project_link']
+                links_list.append(
+                    f"<a href='{project_link}'><img src='https://img.shields.io/badge/Project-Page-yellow' alt='{project_link}'></a> ")
             if paper.get('doi'):
                 doi = normalize_link(paper['doi'])
                 doi_link = f"https://doi.org/{doi}"
@@ -193,16 +225,61 @@ def search(
     os.makedirs(save_file_dir, exist_ok=True)
 
     # 去除重复的论文并保存到 csv 文件中
-    def save_csv_checkpoints(all_papers):
-        seen = set()
-        # 使用论文名称判断是否重复，逆序是使用新的论文覆盖旧的论文
-        tmp_all_papers = [x for x in reversed(all_papers) if not (x['title'].lower()) in seen and not seen.add(x['title'].lower())]
-        tmp_all_papers = list(reversed(tmp_all_papers))
-        print_(f"总共保存 {len(tmp_all_papers)} 篇论文，于 {csv_file_path} 中")
-        save_to_csv(csv_file_path, tmp_all_papers)
+    def save_csv_checkpoints(all_papers, preserve_new_paper=True, do_save=True):
+        """
+        保存论文到 csv 文件中，并去除重复的论文
+        Args:
+            all_papers: 论文列表
+            preserve_new_paper: 是否保留最新论文，如果为 False，则保留旧的论文
+            do_save: 是否保存到文件
+        Returns:
+            去除重复后的论文列表
+        """
+        def preserve_order(papers):
+            papers = reversed(papers) if preserve_new_paper else papers
+            return papers
 
-    csv_file_path = f"{save_file_dir}/{keyword}_papers.csv"
-    md_file_path = f"{save_file_dir}/{keyword}_papers.md"
+        seen = dict()
+        # 使用论文名称判断是否重复，逆序是使用新的论文覆盖旧的论文
+        # 如果新的论文中没有旧的论文的一部分内容，则旧的论文中的内容会填入新的论文中的空
+        tmp_all_papers = []
+        for paper in preserve_order(all_papers):
+            if paper['title'] in seen:
+                new_paper = seen[paper['title']]
+                old_paper = paper
+                # 将 old_paper 中 new_paper 没有的内容填入 new_paper 中
+                for key in old_paper:
+                    if (key not in new_paper or new_paper[key] is None) and old_paper[key] is not None:
+                        new_paper[key] = old_paper[key]
+            else:
+                seen[paper['title']] = paper
+                tmp_all_papers.append(paper)
+        tmp_all_papers = list(preserve_order(tmp_all_papers))
+        if do_save:
+            print_(f"将论文从 {len(all_papers)} 篇去除重复到 {len(tmp_all_papers)} 篇，保存到 {csv_file_path} 中")
+            save_to_csv(csv_file_path, tmp_all_papers)
+        else:
+            print_(f"将论文从 {len(all_papers)} 篇去除重复到 {len(tmp_all_papers)} 篇")
+        return tmp_all_papers
+
+
+    # 将 new_papers 中的论文内容补充到 base_papers 中
+    def append_content_to(base_papers, new_papers):
+        """
+        将 new_papers 中的论文（该论文是 base_papers 中存在的）的内容补充到 base_papers 中
+        """
+        base_papers_map = dict((x['title'], x) for x in base_papers)
+        for new_paper in new_papers:
+            if new_paper['title'] in base_papers_map:
+                base_paper = base_papers_map[new_paper['title']]
+                for key in new_paper:
+                    if (key not in base_paper or base_paper[key] is None) and new_paper[key] is not None:
+                        base_paper[key] = new_paper[key]
+        return base_papers
+
+
+    csv_file_path = f"{save_file_dir}/{keyword} papers.csv"
+    md_file_path = f"{save_file_dir}/{keyword} papers.md"
     if not os.path.exists(csv_file_path):
         all_papers = []
     else:
@@ -270,16 +347,21 @@ def search(
     # == arXiv == 中的论文搜索
     print_(f"正在搜索 arXiv 中的论文...")
     arxiv_papers = arxiv_paper_search(keyword)
+
+    # 将 arXiv 论文内容补充到 all_papers 中（如果 all_papers 中有该论文）
+    all_papers = append_content_to(all_papers, arxiv_papers)
+    save_csv_checkpoints(all_papers)
+
     # 去除 all_papers 中已经出现的 arXiv 论文
     all_titles = [x['title'] for x in all_papers]
     arxiv_papers = [x for x in arxiv_papers if x['title'] not in all_titles]
+    # 筛选 arXiv 论文中 CV 领域的论文
     filtered_arxiv_papers = []
     for arxiv_paper in arxiv_papers:
         if arxiv_paper.get('primary_category') and arxiv_paper['primary_category'] == 'cs.CV':
             filtered_arxiv_papers.append(arxiv_paper)
     print_(f"筛选后的 arXiv 搜索结果 {len(filtered_arxiv_papers)} 篇论文：\n{filtered_arxiv_papers}")
 
-    save_csv_checkpoints(all_papers)
     all_papers: list[dict] = load_from_csv(csv_file_path)
     save_to_md(md_file_path=md_file_path, keyword=keyword, all_papers=all_papers, arxiv_papers=filtered_arxiv_papers)
 
