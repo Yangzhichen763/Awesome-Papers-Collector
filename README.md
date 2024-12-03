@@ -57,6 +57,17 @@ awesome_search.search(keyword)
 ![pictures\example_3.png](pictures/example_3.png)
 </center>
 
+## 筛除不符合条件的论文
+通过关键词筛除论文标题中包含指定关键词的论文
+```python
+from core.awesome import awesome_search
+
+# 要筛除的关键词
+filter_keywords = ['NeRF', 'Gaussian Splatting', 'Neural Radiance Fields', 'Neural', 'Gaussian']
+
+awesome_search.filter_title(filter_keywords)
+```
+
 # 其他功能
 
 ## 爬取文章作者

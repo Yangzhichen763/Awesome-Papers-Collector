@@ -155,57 +155,58 @@ def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_pa
                 f.write(f"| {pub_md} | {title_md} | {links_md} |\n")
 
         # 按年份分组
-        for paper in arxiv_papers:
-            time = paper['updated_date']
-            formated_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
-            daytime = formated_time.strftime('%Y.%m.%d')
-            year = formated_time.year
+        if arxiv_papers:
+            for paper in arxiv_papers:
+                time = paper['updated_date']
+                formated_time = datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
+                daytime = formated_time.strftime('%Y.%m.%d')
+                year = formated_time.year
 
-            paper['daytime'] = daytime
-            paper['year'] = year
+                paper['daytime'] = daytime
+                paper['year'] = year
 
-        # 按年月日排序
-        arxiv_papers.sort(key=lambda x: x['daytime'], reverse=True)
+            # 按年月日排序
+            arxiv_papers.sort(key=lambda x: x['daytime'], reverse=True)
 
-        # 输出 arXiv 论文信息
-        f.write(f"### arXiv\n")
-        f.write(f"{len(arxiv_papers)} papers preprinted.\n\n")
-        f.write("| Catergory | Title | Links |\n")
-        f.write("| :---: | :--- | :--- |\n")
-        for paper in arxiv_papers:
-            # Category
-            category = paper['primary_category']
-            daytime = paper['daytime']
-            category_md = f"{category}<br><sup>{daytime}</sup>"
+            # 输出 arXiv 论文信息
+            f.write(f"### arXiv\n")
+            f.write(f"{len(arxiv_papers)} papers preprinted.\n\n")
+            f.write("| Catergory | Title | Links |\n")
+            f.write("| :---: | :--- | :--- |\n")
+            for paper in arxiv_papers:
+                # Category
+                category = paper['primary_category']
+                daytime = paper['daytime']
+                category_md = f"{category}<br><sup>{daytime}</sup>"
 
-            # Title
-            title_md = f"{paper['title']}<br> <sup><sub>*{', '.join(paper['authors'])}*</sub></sup>"
+                # Title
+                title_md = f"{paper['title']}<br> <sup><sub>*{', '.join(paper['authors'])}*</sub></sup>"
 
-            # Links
-            links_list = []
-            if paper.get('pdf_link'):
-                pdf_link = paper['pdf_link']
-                links_list.append(f"<a href='{pdf_link}'><img src='https://img.shields.io/badge/Paper-PDF-red' alt='Paper PDF Link'></a> ")
-            if paper.get('arxiv_link'):
-                arxiv_link = paper['arxiv_link']
-                try:
-                    arxiv_code = re.search(r".*?(\d{4}.\d{4,5}(?:v\d+)?)", arxiv_link).group(1)
-                except AttributeError:
-                    print_(f"无法解析 arXiv 链接 {arxiv_link}")
-                    arxiv_code = "?"
-                links_list.append(
-                    f"<a href='{paper['arxiv_link']}'><img src='https://img.shields.io/badge/arXiv-{arxiv_code}-limegreen' alt='{arxiv_code}'></a> ")
-            if paper.get('project_link'):
-                project_link = paper['project_link']
-                links_list.append(
-                    f"<a href='{project_link}'><img src='https://img.shields.io/badge/Project-Page-yellow' alt='{project_link}'></a> ")
-            if paper.get('doi'):
-                doi = normalize_link(paper['doi'])
-                doi_link = f"https://doi.org/{doi}"
-                links_list.append(
-                    f"<a href='{doi_link}'><img src='https://img.shields.io/badge/DOI-Link-cornflowerblue' alt='{doi}'></a> ")
-            links_md = "".join(links_list)
-            f.write(f"| {category_md} | {title_md} | {links_md} |\n")
+                # Links
+                links_list = []
+                if paper.get('pdf_link'):
+                    pdf_link = paper['pdf_link']
+                    links_list.append(f"<a href='{pdf_link}'><img src='https://img.shields.io/badge/Paper-PDF-red' alt='Paper PDF Link'></a> ")
+                if paper.get('arxiv_link'):
+                    arxiv_link = paper['arxiv_link']
+                    try:
+                        arxiv_code = re.search(r".*?(\d{4}.\d{4,5}(?:v\d+)?)", arxiv_link).group(1)
+                    except AttributeError:
+                        print_(f"无法解析 arXiv 链接 {arxiv_link}")
+                        arxiv_code = "?"
+                    links_list.append(
+                        f"<a href='{paper['arxiv_link']}'><img src='https://img.shields.io/badge/arXiv-{arxiv_code}-limegreen' alt='{arxiv_code}'></a> ")
+                if paper.get('project_link'):
+                    project_link = paper['project_link']
+                    links_list.append(
+                        f"<a href='{project_link}'><img src='https://img.shields.io/badge/Project-Page-yellow' alt='{project_link}'></a> ")
+                if paper.get('doi'):
+                    doi = normalize_link(paper['doi'])
+                    doi_link = f"https://doi.org/{doi}"
+                    links_list.append(
+                        f"<a href='{doi_link}'><img src='https://img.shields.io/badge/DOI-Link-cornflowerblue' alt='{doi}'></a> ")
+                links_md = "".join(links_list)
+                f.write(f"| {category_md} | {title_md} | {links_md} |\n")
 
     print_(f"Awesome {awesome_title} 已保存到 {md_file_path}")
 
@@ -278,8 +279,9 @@ def search(
         return base_papers
 
 
-    csv_file_path = f"{save_file_dir}/{keyword} papers.csv"
-    md_file_path = f"{save_file_dir}/{keyword} papers.md"
+    # 读取 csv 文件中的记录
+    csv_file_path = os.path.join(save_file_dir, f"{keyword} papers.csv")
+    md_file_path = os.path.join(save_file_dir, f"{keyword} papers.md")
     if not os.path.exists(csv_file_path):
         all_papers = []
     else:
@@ -362,8 +364,46 @@ def search(
             filtered_arxiv_papers.append(arxiv_paper)
     print_(f"筛选后的 arXiv 搜索结果 {len(filtered_arxiv_papers)} 篇论文：\n{filtered_arxiv_papers}")
 
+    # 将筛选和偶的记录保存到 md 进行可视化
     all_papers: list[dict] = load_from_csv(csv_file_path)
     save_to_md(md_file_path=md_file_path, keyword=keyword, all_papers=all_papers, arxiv_papers=filtered_arxiv_papers)
+
+
+def filter_title(
+        remove_keywords: [str, list[str]],
+        keyword: str,
+        load_file_dir: str = f"{root}/test/docs/",
+        save_file_dir: str = None,
+):
+    """
+    根据论文标题中是否包含关键词过滤论文
+
+    Args:
+        remove_keywords: 要移除的关键词
+        load_file_dir: 加载文件目录
+        save_file_dir: 保存文件目录，默认与 load_file_dir 相同
+    """
+    if isinstance(remove_keywords, str):
+        remove_keywords = [remove_keywords]
+    save_file_dir = save_file_dir or load_file_dir
+
+    os.makedirs(save_file_dir, exist_ok=True)
+    csv_file_path = os.path.join(load_file_dir, f"{keyword} papers.csv")
+    md_file_path = os.path.join(save_file_dir, f"{keyword} filtered papers.md")
+
+    # 读取 csv 文件中的记录
+    if not os.path.exists(csv_file_path):
+        all_papers = []
+    else:
+        all_papers: list[dict] = load_from_csv(csv_file_path)
+    print_(f"从已有文件 {csv_file_path} 中读入 {len(all_papers)} 篇论文")
+
+    # 在 papers 中筛选 title 中不包含关键词的论文
+    filtered_papers = [x for x in all_papers if all(k.lower() not in x['title'].lower() for k in remove_keywords)]
+    print_(f"筛选后的论文 {len(filtered_papers)} 篇论文：\n{filtered_papers}")
+
+    # 将筛选和偶的记录保存到 md 进行可视化
+    save_to_md(md_file_path=md_file_path, keyword=keyword, all_papers=filtered_papers)
 
 
 
