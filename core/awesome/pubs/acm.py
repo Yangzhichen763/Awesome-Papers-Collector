@@ -124,7 +124,7 @@ def acm_paper_search(
                         if attach_holder_elem:
                             tooltip_elem = attach_holder_elem.find('div', class_='tooltip__body')
                             if tooltip_elem:
-                                supplementary_elem = tooltip_elem.findall('a')
+                                supplementary_elem = tooltip_elem.find_all('a')
                                 if supplementary_elem:
                                     paper['supplementary_links'] = [f"https://dl.acm.org/{normalize_link(elem['href'])}" for elem in supplementary_elem]
                                     paper['supplementary_link'] = paper['supplementary_links'][0]
@@ -231,7 +231,7 @@ def acm_search(
 
 
 if __name__ == '__main__':
-    _keyword = "Relighting"
+    _keyword = "Low Light"  # "Relighting"
     years = range(2019, 2024 + 1)
     _start_year, _end_year = years[0], years[-1]
 
