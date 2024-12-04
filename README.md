@@ -13,7 +13,7 @@
 点颗星星⭐支持一下~！啾咪(๑´・3・`)๑❤~！
 
 # 注意
-- 爬取时<font color=red>记得开代理</font>，否则爬虫可能连文章网站（如 IEEE、AAAI 等）都进不去
+- 爬取时<font color=red>**记得开代理**</font>，否则爬虫无法爬取部分文章网站（如 IEEE、AAAI 等）
 - 该项目仅用于学习交流，请勿用于商业用途
 
 友情提醒：虽然该项目爬虫已经限制了爬取频率（最多有 128 个网页同时被访问），但还是不要过于频繁地使用，以免被网站屏蔽。
@@ -45,14 +45,15 @@ awesome_search.search(keyword)
 ```
 目前支持的期刊和会议都在 `core/awesome/general.py` 文件下，可以支持检索的期刊和会议网站代码在 `core/awesome/pubs` 文件夹下。
 任务列表如下：
-- [x] 支持在 IEEE Xplore 中检索 IEEE 相关期刊和会议的论文
-- [x] 支持在 ACM Digital Library 中检索 ACM 相关期刊和会议的论文
-- [x] 支持在 OpenReview 中检索相关论文
-- [x] 支持在 arXiv 中检索相关论文
-- [x] 支持在 AAAI 中检索 AAAI 相关会议的论文
-- [x] 支持在 NeurIPS 中检索 NeurIPS 相关会议的论文
-- [x] 支持在 ECCV 中检索 ECCV 相关会议的论文（目前只支持 2018 年以后的 ECCV 论文）
-- [ ] 支持在 Springer 中检索相关论文
+
+<rb>&emsp;✅ 支持在 IEEE Xplore 中检索 IEEE 相关期刊和会议的论文
+<br>&emsp;✅ 支持在 ACM Digital Library 中检索 ACM 相关期刊和会议的论文
+<br>&emsp;✅ 支持在 OpenReview 中检索相关论文
+<br>&emsp;✅ 支持在 arXiv 中检索相关论文
+<br>&emsp;✅ 支持在 AAAI 中检索 AAAI 相关会议的论文
+<br>&emsp;✅ 支持在 NeurIPS 中检索 NeurIPS 相关会议的论文
+<br>&emsp;✅ 支持在 ECCV 中检索 ECCV 相关会议的论文（目前只支持 2018 年以后的 ECCV 论文）
+<br>&emsp;⬛ 支持在 Springer 中检索相关论文
 
 生成的 Awesome md 文件部分展示结果如下：
 <center>
