@@ -4,9 +4,6 @@ import re
 from bs4 import BeautifulSoup
 
 
-tqdm_position = 0
-
-
 def acm_paper_search(
         keyword: str,
         start_year: Optional[int] = None,
@@ -139,7 +136,7 @@ def acm_paper_search(
 
             # 显示进度条
             if pbar is None:
-                pbar = tqdm(total=number_results, position=tqdm_position)
+                pbar = tqdm(total=number_results)
                 pbar.set_description(f"正在搜索论文，关键词: {keyword}")
 
         # 更新进度条
