@@ -204,22 +204,22 @@ def aaai_paper_search(
 
 
                     entry_details_elem = paper_file_soup.find('div', class_='entry_details')
+                    if entry_details_elem:
+                        published_elem = entry_details_elem.find('div', class_='item published')
+                        published_elem = published_elem.find('div', class_='value')
+                        published = published_elem.text.strip()
+                        paper['published_date'] = published
 
-                    published_elem = entry_details_elem.find('div', class_='item published')
-                    published_elem = published_elem.find('div', class_='value')
-                    published = published_elem.text.strip()
-                    paper['published_date'] = published
-
-                    issue_elem = entry_details_elem.find('div', class_='item issue')
-                    issue_elems = issue_elem.find_all('section', class_='sub_item')
-                    for issue_elem in issue_elems:
-                        if issue_elem.find('h2', class_='label', string='Issue'):
-                            issue = issue_elem.find('div', class_='value').text.strip()
-                            paper['issue'] = issue
-                            paper['proceedings'] = issue
-                        if issue_elem.find('h2', class_='label', string='Section'):
-                            track = issue_elem.find('div', class_='value').text.strip()
-                            paper['track'] = track
+                        issue_elem = entry_details_elem.find('div', class_='item issue')
+                        issue_elems = issue_elem.find_all('section', class_='sub_item')
+                        for issue_elem in issue_elems:
+                            if issue_elem.find('h2', class_='label', string='Issue'):
+                                issue = issue_elem.find('div', class_='value').text.strip()
+                                paper['issue'] = issue
+                                paper['proceedings'] = issue
+                            if issue_elem.find('h2', class_='label', string='Section'):
+                                track = issue_elem.find('div', class_='value').text.strip()
+                                paper['track'] = track
 
                     update_paper_with_code_and_project_page(paper)
                     match_paper(keywords, paper, mode)
