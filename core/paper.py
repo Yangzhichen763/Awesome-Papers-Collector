@@ -186,8 +186,10 @@ class Overview(MDClass):
             self.content += f"<br>{md.get_md()}<br>"
 
     def make(self, rel_dir: Optional[str] = None):
+        from source.path import root
+
         # 创建文件夹
-        cur_dir: str = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "papers")
+        cur_dir: str = os.path.join(root, "test/papers")
         if rel_dir is not None:
             cur_dir = os.path.join(cur_dir, rel_dir)
         filename = f"{cur_dir}/{self.validate_title(self.title)}.md"

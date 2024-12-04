@@ -212,7 +212,7 @@ def save_to_md(md_file_path: str, keyword: str, all_papers: list[dict], arxiv_pa
     print_(f"Awesome {awesome_title} 已保存到 {md_file_path}")
 
 
-from path import root
+from source.path import root
 import os
 import datetime
 current_year = datetime.datetime.now().year
