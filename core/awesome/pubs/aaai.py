@@ -244,7 +244,6 @@ def aaai_paper_search(
                     update_tqdm()
                     if paper:
                         papers.append(paper)
-                        print_(papers)
 
             if papers and len(papers) > 0:
                 pbar.set_postfix_str(f"匹配完成，共找到 {len(papers)} 篇论文，于链接 {paper_list_link}")

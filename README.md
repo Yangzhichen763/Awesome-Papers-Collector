@@ -15,6 +15,7 @@
 # 注意
 爬取时<font color=red>记得开代理</font>，否则爬虫可能连文章网站（如 IEEE、AAAI 等）都进不去
 
+友情提醒：虽然该项目爬虫已经限制了爬取频率（最多有 128 个网页同时被访问），但还是不要过于频繁地使用，以免被网站屏蔽。
 # 环境配置
 克隆本仓库到本地
 ```bash
@@ -47,7 +48,7 @@ awesome_search.search(keyword)
 - [x] 支持在 arXiv 中检索相关论文
 - [x] 支持在 AAAI 中检索 AAAI 相关会议的论文
 - [x] 支持在 NeurIPS 中检索 NeurIPS 相关会议的论文
-- [ ] 支持在 ECCV 中检索 ECCV 相关会议的论文
+- [x] 支持在 ECCV 中检索 ECCV 相关会议的论文（目前只支持 2018 年以后的 ECCV 论文）
 - [ ] 支持在 Springer 中检索相关论文
 
 生成的 Awesome md 文件部分展示结果如下：

@@ -9,6 +9,7 @@ from core.awesome.pubs.open_review import openreview_search
 from core.awesome.pubs.neurips import neurips_search
 from core.awesome.pubs.arxiv import arxiv_paper_search
 from core.awesome.pubs.aaai import aaai_search
+from core.awesome.pubs.ecva import ecva_paper_search as eccv_search
 
 
 # == 加载和保存 ==
@@ -344,6 +345,14 @@ def search(
         aaai_papers = aaai_search(union_keywords, years)
         all_papers.extend(aaai_papers)
         print_(f"筛选后的 AAAI 会议搜索结果 {len(aaai_papers)} 篇论文：\n{aaai_papers}")
+        save_csv_checkpoints(all_papers)
+
+    # == ECCV == 会议中的论文搜索
+    if "eccv" in search_type or search_type == "all":
+        print_(f"正在搜索 ECCV 会议中的论文...")
+        eccv_papers = eccv_search(union_keywords, years)
+        all_papers.extend(eccv_papers)
+        print_(f"筛选后的 ECCV 会议搜索结果 {len(eccv_papers)} 篇论文：\n{eccv_papers}")
         save_csv_checkpoints(all_papers)
 
     # == arXiv == 中的论文搜索
