@@ -123,10 +123,11 @@ def acm_paper_search(
                         attach_holder_elem = footer_elem.find('li', class_='attach-holder')
                         if attach_holder_elem:
                             tooltip_elem = attach_holder_elem.find('div', class_='tooltip__body')
-                            supplementary_elem = tooltip_elem.findall('a')
-                            if supplementary_elem:
-                                paper['supplementary_links'] = [f"https://dl.acm.org/{normalize_link(elem['href'])}" for elem in supplementary_elem]
-                                paper['supplementary_link'] = paper['supplementary_links'][0]
+                            if tooltip_elem:
+                                supplementary_elem = tooltip_elem.findall('a')
+                                if supplementary_elem:
+                                    paper['supplementary_links'] = [f"https://dl.acm.org/{normalize_link(elem['href'])}" for elem in supplementary_elem]
+                                    paper['supplementary_link'] = paper['supplementary_links'][0]
 
                         # 论文 pdf 链接
                         pdf_elem = footer_elem.find('a', class_='get-access')
