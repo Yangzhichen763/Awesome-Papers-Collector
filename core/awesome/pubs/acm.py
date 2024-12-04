@@ -140,12 +140,13 @@ def acm_paper_search(
                 pbar.set_description(f"正在搜索论文，关键词: {keyword}")
 
         # 更新进度条
-        pbar.update(min(page_size, number_results - page_number * page_size))
-        pbar.refresh()
+        if pbar is not None:
+            pbar.update(min(page_size, number_results - page_number * page_size))
+            pbar.refresh()
 
         # 所有论文都获取到，退出循环
         page_number += 1
-        if page_number > total_pages:
+        if pbar is not None and page_number > total_pages:
             pbar.close()
             break
 
