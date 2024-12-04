@@ -63,8 +63,6 @@ def acm_paper_search(
         response = get_html(url, params, headers)
         if response is not None:
             soup = BeautifulSoup(response.text, 'html.parser')
-            print(soup.prettify())
-            exit(0)
 
             # 搜索论文条目数量
             number_results = int(soup.find('span', class_='result__count').text
